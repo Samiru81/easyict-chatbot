@@ -621,3 +621,13 @@ textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99
   .user-avatar { width: 34px; height: 34px; flex-basis: 34px; }
   .signout-btn { width: 34px; min-width: 34px; min-height: 34px; }
 }
+
+/* Streaming answer status */
+.stream-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+.stream-status .typing { min-width: 42px; }
+.message.assistant .bubble { min-height: 48px; }

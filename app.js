@@ -107,7 +107,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       return;
     }
 
-    const recentHistory = history.slice(-8).map(({ role, text }) => ({ role, text }));
+    const recentHistory = history.slice(-4).map(({ role, text }) => ({ role, text }));
 
     appendMessage("user", question);
     saveTurn({ role: "user", text: question });
@@ -116,46 +116,66 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     updateCounter();
 
     if (!isConfigured) {
-      appendMessage("assistant", "මෙම වෙබ් අඩවියේ API සැකසුම තවම අවසන් කර නැත. README ගොනුවේ පියවර අනුව Cloudflare Worker එක deploy කර `config.js` ගොනුවට URL එක දමන්න.", [], true);
+      appendMessage("assistant", "මෙම වෙබ් අඩවියේ API සැකසුම තවම අවසන් කර නැත. Cloudflare Worker URL එක `config.js` ගොනුවේ පරීක්ෂා කරන්න.", [], true);
       return;
     }
 
     sending = true;
     elements.send.disabled = true;
-    const typingNode = appendTyping();
+    const streamNode = appendTyping();
+    const requestController = new AbortController();
+    const requestTimeout = window.setTimeout(() => requestController.abort(), 100000);
 
     try {
-      let response = await requestChat(question, recentHistory, false);
+      let response = await requestChat(question, recentHistory, false, requestController.signal);
       if (response.status === 401) {
-        response = await requestChat(question, recentHistory, true);
+        response = await requestChat(question, recentHistory, true, requestController.signal);
       }
 
-      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
         if (response.status === 401) showAuthModal();
         throw new Error(data.error || `සේවා දෝෂයක් (${response.status})`);
       }
 
-      typingNode.remove();
-      const answer = data.answer || "පිළිතුරක් ලැබුණේ නැත.";
-      appendMessage("assistant", answer, Array.isArray(data.sources) ? data.sources : []);
-      saveTurn({ role: "assistant", text: answer });
+      const contentType = response.headers.get("content-type") || "";
+      let result;
+
+      if (contentType.includes("text/event-stream") && response.body) {
+        result = await consumeChatStream(response, streamNode);
+      } else {
+        const data = await response.json().catch(() => ({}));
+        const answer = data.answer || "පිළිතුරක් ලැබුණේ නැත.";
+        updateStreamingNode(streamNode, answer, Array.isArray(data.sources) ? data.sources : []);
+        result = { answer, sources: Array.isArray(data.sources) ? data.sources : [] };
+      }
+
+      if (!result.answer.trim()) throw new Error("පිළිතුරක් ලැබුණේ නැත.");
+      saveTurn({ role: "assistant", text: result.answer });
       setStatus(true, "AI සේවාව සක්‍රියයි");
     } catch (error) {
-      typingNode.remove();
-      appendMessage("assistant", `පිළිතුර ලබාගැනීමට නොහැකි විය. ${friendlyError(error)}`, [], true);
+      const existingText = streamNode.dataset.answer || "";
+      if (existingText.trim()) {
+        const note = "\n\n⚠️ සම්බන්ධතාවය අතරමඟ නතර විය. නැවත Send කර උත්සාහ කරන්න.";
+        updateStreamingNode(streamNode, existingText + note, [], true);
+      } else {
+        streamNode.remove();
+        appendMessage("assistant", `පිළිතුර ලබාගැනීමට නොහැකි විය. ${friendlyError(error)}`, [], true);
+      }
+
       const message = error instanceof Error ? error.message : String(error || "");
       setStatus(false, /Failed to fetch|NetworkError|fetch failed/i.test(message)
         ? "AI සේවාව සම්බන්ධ නැත"
         : "AI සේවාවේ තාවකාලික දෝෂයක්");
     } finally {
+      window.clearTimeout(requestTimeout);
       sending = false;
       elements.send.disabled = !activeUser;
       if (activeUser) elements.input.focus();
     }
   }
 
-  async function requestChat(question, recentHistory, forceRefresh) {
+  async function requestChat(question, recentHistory, forceRefresh, signal) {
     const token = await getIdToken(forceRefresh);
     if (!token) throw new Error("Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.");
 
@@ -165,14 +185,121 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       cache: "no-store",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "text/event-stream",
         "Authorization": `Bearer ${token}`
       },
+      signal,
       body: JSON.stringify({
         question,
         grade: elements.grade.value,
         history: recentHistory
       })
     });
+  }
+
+  async function consumeChatStream(response, node) {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let answer = "";
+    let sources = [];
+    let streamError = null;
+    let renderQueued = false;
+
+    const queueRender = () => {
+      if (renderQueued) return;
+      renderQueued = true;
+      requestAnimationFrame(() => {
+        renderQueued = false;
+        updateStreamingNode(node, answer, sources);
+      });
+    };
+
+    const processBlock = (block) => {
+      const parsed = parseSseBlock(block);
+      if (!parsed) return;
+      let payload = {};
+      try { payload = JSON.parse(parsed.data || "{}"); } catch { return; }
+
+      if (parsed.event === "delta" && typeof payload.text === "string") {
+        answer += payload.text;
+        node.dataset.answer = answer;
+        queueRender();
+      } else if (parsed.event === "sources" && Array.isArray(payload.sources)) {
+        sources = payload.sources;
+        queueRender();
+      } else if (parsed.event === "status" && !answer) {
+        setStreamingStatus(node, payload.message || "පිළිතුර සකස් කරමින්...");
+      } else if (parsed.event === "error") {
+        streamError = new Error(payload.error || "AI stream error");
+      }
+    };
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+
+        let boundary;
+        while ((boundary = buffer.indexOf("\n\n")) >= 0) {
+          const block = buffer.slice(0, boundary);
+          buffer = buffer.slice(boundary + 2);
+          processBlock(block);
+        }
+      }
+
+      buffer += decoder.decode();
+      buffer = buffer.replace(/\r\n/g, "\n");
+      if (buffer.trim()) processBlock(buffer);
+    } finally {
+      try { reader.releaseLock(); } catch { /* no-op */ }
+    }
+
+    updateStreamingNode(node, answer, sources, Boolean(streamError));
+    if (streamError) throw streamError;
+    return { answer, sources };
+  }
+
+  function parseSseBlock(block) {
+    let event = "message";
+    const dataLines = [];
+    for (const line of String(block || "").split(/\r?\n/)) {
+      if (line.startsWith("event:")) event = line.slice(6).trim();
+      else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+    }
+    if (!dataLines.length) return null;
+    return { event, data: dataLines.join("\n") };
+  }
+
+  function setStreamingStatus(node, message) {
+    const bubble = node.querySelector(".bubble");
+    bubble.innerHTML = `<span class="stream-status"><span class="typing"><i></i><i></i><i></i></span>${escapeHtml(message)}</span>`;
+    scrollToBottom();
+  }
+
+  function updateStreamingNode(node, answer, sources = [], isError = false) {
+    const bubble = node.querySelector(".bubble");
+    const sourceBox = node.querySelector(".sources");
+    node.dataset.answer = answer || "";
+    bubble.innerHTML = answer ? renderMarkdown(answer) : '<span class="typing"><i></i><i></i><i></i></span>';
+    bubble.classList.toggle("error-bubble", Boolean(isError));
+
+    sourceBox.innerHTML = "";
+    if (sources.length) {
+      sourceBox.hidden = false;
+      sources.slice(0, 8).forEach((source) => {
+        const chip = document.createElement("span");
+        chip.className = "source-chip";
+        const page = source.page ? ` • පිටුව ${source.page}` : "";
+        chip.textContent = `${source.file || "පාඩම් පොත"}${page}`;
+        if (source.snippet) chip.title = source.snippet;
+        sourceBox.appendChild(chip);
+      });
+    } else {
+      sourceBox.hidden = true;
+    }
+    scrollToBottom();
   }
 
   function setComposerEnabled(enabled) {
@@ -360,6 +487,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   function friendlyError(error) {
     const message = error instanceof Error ? error.message : String(error || "");
+    if (/AbortError|aborted/i.test(message)) return "පිළිතුර සඳහා කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.";
     if (/Failed to fetch|NetworkError/i.test(message)) return "අන්තර්ජාල සම්බන්ධතාවය හෝ API URL එක පරීක්ෂා කරන්න.";
     if (/401|Login session/i.test(message)) return "Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.";
     return message;
