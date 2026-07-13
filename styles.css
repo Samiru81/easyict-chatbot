@@ -978,3 +978,318 @@ html[data-theme="dark"] .messages::-webkit-scrollbar-thumb {
     font-size: 1.1rem;
   }
 }
+
+/* =========================================================
+   Desktop dark theme — ChatGPT-inspired neutral interface
+   Mobile and light themes remain unchanged.
+   ========================================================= */
+@media (min-width: 1024px) {
+  html[data-theme="dark"] {
+    --bg: #212121;
+    --surface: #212121;
+    --surface-solid: #212121;
+    --surface-soft: #2f2f2f;
+    --text: #ececec;
+    --muted: #b4b4b4;
+    --border: #424242;
+    --primary: #10a37f;
+    --primary-strong: #0d8f70;
+    --primary-soft: rgba(16, 163, 127, .14);
+    --user-bubble: #303030;
+    --user-text: #f4f4f4;
+    --shadow: none;
+    --danger: #ff6b6b;
+    --success: #10a37f;
+  }
+
+  html[data-theme="dark"] body {
+    background: #212121;
+  }
+
+  html[data-theme="dark"] .app-shell {
+    background: #212121;
+  }
+
+  html[data-theme="dark"] .topbar {
+    background: #171717;
+    border-color: #303030;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .035);
+  }
+
+  html[data-theme="dark"] .site-footer {
+    background: #171717;
+    border-color: #303030;
+    box-shadow: none;
+  }
+
+  html[data-theme="dark"] .site-footer p {
+    color: #b4b4b4;
+  }
+
+  html[data-theme="dark"] .site-footer strong {
+    color: #ececec;
+  }
+
+  html[data-theme="dark"] .side-card {
+    background: #171717;
+    border-color: #303030;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html[data-theme="dark"] .chat-panel {
+    background: #212121;
+    border-color: #353535;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  html[data-theme="dark"] .messages {
+    background: #212121;
+  }
+
+  html[data-theme="dark"] .bubble {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: #ececec;
+  }
+
+  html[data-theme="dark"] .message.assistant .bubble {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  html[data-theme="dark"] .message.user .bubble {
+    background: #303030;
+    border: 1px solid #3a3a3a;
+    color: #f4f4f4;
+    box-shadow: none;
+  }
+
+  html[data-theme="dark"] .avatar {
+    background: #2f2f2f;
+    color: #d8d8d8;
+    border: 1px solid #424242;
+  }
+
+  html[data-theme="dark"] .user .avatar,
+  html[data-theme="dark"] .user-avatar {
+    background: #10a37f;
+    border-color: rgba(255, 255, 255, .18);
+    color: #ffffff;
+  }
+
+  html[data-theme="dark"] select,
+  html[data-theme="dark"] textarea,
+  html[data-theme="dark"] .tips p,
+  html[data-theme="dark"] .quick-prompts button,
+  html[data-theme="dark"] .provider-btn {
+    background: #2f2f2f;
+    border-color: #424242;
+    color: #ececec;
+  }
+
+  html[data-theme="dark"] .tips p {
+    color: #c5c5c5;
+  }
+
+  html[data-theme="dark"] select:hover,
+  html[data-theme="dark"] .quick-prompts button:hover,
+  html[data-theme="dark"] .provider-btn:hover {
+    background: #383838;
+    border-color: #565656;
+    color: #ffffff;
+  }
+
+  html[data-theme="dark"] textarea:focus,
+  html[data-theme="dark"] select:focus {
+    border-color: #6b6b6b;
+    box-shadow: 0 0 0 1px #6b6b6b;
+  }
+
+  html[data-theme="dark"] textarea::placeholder {
+    color: #9b9b9b;
+  }
+
+  html[data-theme="dark"] .composer,
+  html[data-theme="dark"] .composer-hint {
+    background: #212121;
+    border-color: #353535;
+  }
+
+  html[data-theme="dark"] .input-wrap {
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, .2));
+  }
+
+  html[data-theme="dark"] .send-btn {
+    background: #ececec;
+    color: #212121;
+    box-shadow: none;
+  }
+
+  html[data-theme="dark"] .send-btn:hover {
+    background: #ffffff;
+  }
+
+  html[data-theme="dark"] .send-btn:disabled {
+    background: #555555;
+    color: #a8a8a8;
+  }
+
+  html[data-theme="dark"] .source-chip {
+    background: #2f2f2f;
+    border-color: #424242;
+    color: #d8d8d8;
+  }
+
+  html[data-theme="dark"] .source-chip:hover {
+    background: #383838;
+  }
+
+  html[data-theme="dark"] .bubble code {
+    background: #2f2f2f;
+    color: #f1f1f1;
+  }
+
+  html[data-theme="dark"] .bubble pre {
+    background: #171717;
+    color: #ececec;
+    border: 1px solid #353535;
+  }
+
+  html[data-theme="dark"] .icon-btn,
+  html[data-theme="dark"] .login-btn,
+  html[data-theme="dark"] .signout-btn {
+    background: #2f2f2f;
+    border-color: #424242;
+    color: #ececec;
+  }
+
+  html[data-theme="dark"] .icon-btn:hover,
+  html[data-theme="dark"] .login-btn:hover,
+  html[data-theme="dark"] .signout-btn:hover {
+    background: #3a3a3a;
+    border-color: #565656;
+  }
+
+  html[data-theme="dark"] .status-dot.online {
+    background: #10a37f;
+    box-shadow: 0 0 0 4px rgba(16, 163, 127, .13);
+  }
+
+  html[data-theme="dark"] .status-dot.offline {
+    background: #ff6b6b;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, .12);
+  }
+
+  html[data-theme="dark"] .error-bubble {
+    background: rgba(255, 107, 107, .08);
+    border-color: rgba(255, 107, 107, .38);
+  }
+
+  html[data-theme="dark"] .auth-overlay {
+    background: rgba(0, 0, 0, .72);
+  }
+
+  html[data-theme="dark"] .auth-card {
+    background: #212121;
+    border-color: #424242;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, .55);
+  }
+
+  html[data-theme="dark"] .messages::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+  }
+
+  html[data-theme="dark"] .sidebar {
+    scrollbar-color: #4a4a4a transparent;
+  }
+
+  html[data-theme="dark"] ::selection {
+    background: rgba(16, 163, 127, .32);
+    color: #ffffff;
+  }
+}
+
+/* =========================================================
+   easyict PNG logo replacement — transparent background,
+   white graduation cap, responsive header and login sizing.
+   ========================================================= */
+.easyict-wordmark {
+  display: flex;
+  align-items: center;
+  width: clamp(150px, 18vw, 250px);
+  min-width: 0;
+  padding: 0;
+}
+
+.brand-logo-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 62px;
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 7px 16px rgba(236, 7, 19, .14));
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(250px, 76%);
+  min-height: 76px;
+  margin: 0 auto 18px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  background: #171717;
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+}
+
+.auth-logo-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 58px;
+  object-fit: contain;
+}
+
+/* Hide the old text/emoji logo styles if an older cached page mixes assets. */
+.auth-logo,
+.auth-cap,
+.easyict-text,
+.graduation-cap {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .easyict-wordmark {
+    width: clamp(126px, 38vw, 182px);
+  }
+
+  .brand-logo-img {
+    max-height: 48px;
+  }
+
+  .auth-brand {
+    width: min(220px, 78%);
+    min-height: 68px;
+    padding: 9px 12px;
+  }
+
+  .auth-logo-img {
+    max-height: 50px;
+  }
+}
+
+@media (min-width: 1050px) {
+  .easyict-wordmark {
+    width: clamp(205px, 17vw, 275px);
+  }
+
+  .brand-logo-img {
+    max-height: 66px;
+  }
+}
