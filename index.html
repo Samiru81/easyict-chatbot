@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="si">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="7-11 ශ්‍රේණි ICT පාඩම් පොත් ඇසුරෙන් සිංහලෙන් පිළිතුරු දෙන AI සහායකයෙක්." />
+  <title>easyict Chat Bot</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="authOverlay" class="auth-overlay" hidden>
+    <section class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <div class="auth-brand" aria-hidden="true">
+        <span class="auth-logo">easyict</span>
+        <span class="auth-cap">🎓</span>
+      </div>
+      <h2 id="authTitle">Google Login / Sign Up</h2>
+      <p class="auth-intro">Chat Bot භාවිතා කිරීමට ඔබේ Google account එකෙන් ඇතුළත් වන්න. පළමු වරට ඇතුළත් වන විට account එක ස්වයංක්‍රීයව සාදයි.</p>
+      <div id="authConfigWarning" class="auth-warning" hidden>
+        Firebase setup එක තවම අවසන් කර නැත. <code>site/config.js</code> ගොනුව පරීක්ෂා කරන්න.
+      </div>
+      <div class="auth-provider-list">
+        <button class="provider-btn google" type="button" data-auth-provider="google">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.8 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.5a4.7 4.7 0 0 1-2 3.1v2.6h3.3c1.9-1.8 3-4.4 3-7.5Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.8-2.3l-3.3-2.6c-.9.6-2.1 1-3.5 1-2.6 0-4.8-1.8-5.6-4.1H3v2.7A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 14a6 6 0 0 1 0-3.9V7.4H3a10 10 0 0 0 0 9.3L6.4 14Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.8A9.7 9.7 0 0 0 3 7.4l3.4 2.7C7.2 7.7 9.4 5.9 12 5.9Z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+      </div>
+      <p id="authMessage" class="auth-message" aria-live="polite"></p>
+      <small class="auth-note">ඉදිරියට යාමෙන් ඔබ Google සහ Firebase Authentication හරහා account එක තහවුරු කිරීමට එකඟ වේ.</small>
+    </section>
+  </div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="easyict Chat Bot">
+        <div class="easyict-wordmark" aria-hidden="true">
+          <span class="easyict-text">easyict</span>
+          <span class="graduation-cap">🎓</span>
+        </div>
+        <span class="brand-divider" aria-hidden="true"></span>
+        <div class="brand-copy">
+          <h1>Chat Bot</h1>
+          <p>සිංහලෙන් පැහැදිලි පිළිතුරු ලබාගන්න</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="openAuth" class="login-btn" type="button">Google Login</button>
+        <div id="userMenu" class="user-menu" hidden>
+          <div id="userAvatar" class="user-avatar" aria-hidden="true">U</div>
+          <span id="userName" class="user-name">User</span>
+          <button id="signOutButton" class="signout-btn" type="button">Sign Out</button>
+        </div>
+        <button id="clearChat" class="icon-btn" type="button" title="සංවාදය මකන්න" aria-label="සංවාදය මකන්න">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 10v6m4-6v6" /></svg>
+        </button>
+        <button id="themeToggle" class="icon-btn" type="button" title="තේමාව මාරු කරන්න" aria-label="තේමාව මාරු කරන්න">
+          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-layout">
+      <aside class="sidebar">
+        <section class="side-card">
+          <h2>පොත තෝරන්න</h2>
+          <label class="select-wrap" for="gradeSelect">
+            <span class="sr-only">ශ්‍රේණිය</span>
+            <select id="gradeSelect">
+              <option value="all">සියලුම ශ්‍රේණි (7-11)</option>
+              <option value="7">7 ශ්‍රේණිය</option>
+              <option value="8">8 ශ්‍රේණිය</option>
+              <option value="9">9 ශ්‍රේණිය</option>
+              <option value="10">10 ශ්‍රේණිය</option>
+              <option value="11">11 ශ්‍රේණිය</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="side-card tips">
+          <h2>හොඳ ප්‍රශ්නයක් අහන්නේ මෙහෙමයි</h2>
+          <p>“දත්ත හා තොරතුරු අතර වෙනස උදාහරණ සමඟ පැහැදිලි කරන්න.”</p>
+          <p>“ARP ක්‍රියා කරන ආකාරය පියවරෙන් පියවර කියන්න.”</p>
+          <p>“මෙම පාඩමෙන් විභාගයට කෙටි සටහනක් දෙන්න.”</p>
+        </section>
+
+        <section class="side-card status-card">
+          <div class="status-line"><span id="statusDot" class="status-dot"></span><span id="apiStatus">සේවාව පරීක්ෂා කරමින්...</span></div>
+          <small>AI පිළිතුරු වැරදි විය හැක. පොතේ මූලාශ්‍රයද පරීක්ෂා කරන්න.</small>
+        </section>
+      </aside>
+
+      <section class="chat-panel" aria-label="AI සංවාදය">
+        <div id="messages" class="messages" aria-live="polite">
+          <article class="message assistant welcome-message">
+            <div class="avatar bot-avatar" aria-hidden="true">AI</div>
+            <div class="message-body">
+              <div class="bubble">
+                <h2>ආයුබෝවන්! 👋</h2>
+                <p>මම easyict Chat Bot. 7 සිට 11 ශ්‍රේණිය දක්වා ICT පාඩම් පොත් ඇසුරෙන් සිංහලෙන් පිළිතුරු දෙන AI සහායකයෙක්.</p>
+                <p>පාඩමක් පැහැදිලි කිරීම, කෙටි සටහනක්, උදාහරණ, ප්‍රශ්න සහ පිළිතුරු හෝ විභාග පුහුණුවක් ඉල්ලන්න.</p>
+              </div>
+              <div class="quick-prompts" aria-label="උදාහරණ ප්‍රශ්න">
+                <button type="button">පරිගණක පද්ධතියක් යනු කුමක්ද?</button>
+                <button type="button">දත්ත හා තොරතුරු අතර වෙනස</button>
+                <button type="button">මෙහෙයුම් පද්ධතිය පැහැදිලි කරන්න</button>
+                <button type="button">Boolean ද්වාර පිළිබඳ කෙටි සටහනක්</button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div id="setupNotice" class="setup-notice" hidden>
+          <strong>සැකසුම අවසන් කර නැත.</strong>
+          <span><code>site/config.js</code> ගොනුවේ Cloudflare Worker URL එක දමන්න.</span>
+        </div>
+
+        <form id="chatForm" class="composer">
+          <div class="input-wrap">
+            <textarea id="questionInput" rows="1" maxlength="1500" placeholder="ඔබේ ප්‍රශ්නය මෙහි ලියන්න..." aria-label="ඔබේ ප්‍රශ්නය"></textarea>
+            <span id="charCount" class="char-count">0/1500</span>
+          </div>
+          <button id="sendButton" class="send-btn" type="submit" aria-label="ප්‍රශ්නය යවන්න">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-8-8 18-2-7-8-3Z"/><path d="m11 14 10-11"/></svg>
+            <span>යවන්න</span>
+          </button>
+        </form>
+        <p class="composer-hint">Enter යතුරෙන් යවන්න • නව පේළියකට Shift + Enter</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Developed By <strong>Samiru Dinushan</strong></p>
+    </footer>
+  </div>
+
+  <template id="messageTemplate">
+    <article class="message">
+      <div class="avatar"></div>
+      <div class="message-body">
+        <div class="bubble"></div>
+        <div class="sources" hidden></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

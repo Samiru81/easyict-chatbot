@@ -1,0 +1,25 @@
+easyict Chat Bot - GitHub Pages Upload
+
+1. GitHub repository එක open කරන්න.
+2. දැනට repository එකේ තිබෙන site folder සහ වැරදි files ඉවත් කරන්න.
+3. මෙම ZIP එක extract කරන්න.
+4. Extract කළ files සියල්ල repository ROOT එකට upload කරන්න.
+   index.html repository එක open කළ විට මුලින්ම පෙනිය යුතුයි.
+5. Settings > Pages වෙත යන්න.
+6. Source: Deploy from a branch
+7. Branch: main
+8. Folder: / (root)
+9. Save කරන්න.
+10. Actions/Pages deployment අවසන් වන තෙක් මිනිත්තු කිහිපයක් රැඳී සිටින්න.
+
+වැදගත් repository structure:
+index.html
+styles.css
+app.js
+auth.js
+config.js
+favicon.svg
+.nojekyll
+404.html
+
+site folder එකක් ඇතුළට මේ files දමන්න එපා.
