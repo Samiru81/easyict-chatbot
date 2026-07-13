@@ -30,7 +30,13 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     sidebarBackdrop: document.getElementById("sidebarBackdrop"),
     booksTab: document.getElementById("booksTab"),
     booksShortcut: document.getElementById("booksShortcut"),
-    welcomeTitle: document.getElementById("welcomeTitle")
+    welcomeTitle: document.getElementById("welcomeTitle"),
+    welcomeDescription: document.getElementById("welcomeDescription"),
+    subjectMode: document.getElementById("subjectMode"),
+    generalMode: document.getElementById("generalMode"),
+    langSi: document.getElementById("langSi"),
+    langEn: document.getElementById("langEn"),
+    gradeSection: document.querySelector(".grade-section")
   };
 
   const LEGACY_STORAGE_PREFIX = "easyict-chat-v2";
@@ -38,6 +44,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   const MIGRATION_PREFIX = "easyict-history-migrated-v1";
   const THEME_KEY = "easyict-chat-theme";
   const GRADE_KEY = "easyict-chat-grade";
+  const MODE_KEY = "easyict-answer-mode";
+  const LANGUAGE_KEY = "easyict-answer-language";
   const MAX_CONVERSATIONS = 30;
   const MAX_MESSAGES_PER_CONVERSATION = 40;
 
@@ -50,6 +58,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   initializeTheme();
   initializeGrade();
+  initializePreferences();
   bindEvents();
   autoResize();
   updateCounter();
@@ -81,6 +90,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     elements.sidebarBackdrop?.addEventListener("click", () => setSidebar(false));
     elements.booksTab?.addEventListener("click", () => setSidebar(true));
     elements.booksShortcut?.addEventListener("click", () => setSidebar(true));
+    elements.subjectMode?.addEventListener("click", () => setAnswerMode("subject", true));
+    elements.generalMode?.addEventListener("click", () => setAnswerMode("general", true));
+    elements.langSi?.addEventListener("click", () => setAnswerLanguage("si", true));
+    elements.langEn?.addEventListener("click", () => setAnswerLanguage("en", true));
     elements.grade.addEventListener("change", () => {
       localStorage.setItem(GRADE_KEY, elements.grade.value);
       const active = getActiveConversation();
@@ -116,14 +129,13 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     renderRecentList();
 
     if (!activeUser) {
-      if (elements.welcomeTitle) elements.welcomeTitle.textContent = "ආයුබෝවන්.";
+      updateModeUI();
       setComposerEnabled(false);
       elements.input.placeholder = "Chat Bot භාවිතා කිරීමට Google account එකෙන් Login වන්න...";
       return;
     }
 
-    const firstName = String(activeUser.displayName || "").trim().split(/\s+/)[0];
-    if (elements.welcomeTitle) elements.welcomeTitle.textContent = firstName ? `ආයුබෝවන්, ${firstName}.` : "ආයුබෝවන්.";
+    updateModeUI();
 
     conversationStorageKey = `${CONVERSATIONS_PREFIX}:${activeUser.uid}`;
     conversations = loadConversations();
@@ -133,7 +145,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     // Every fresh page open starts with a clean, empty conversation.
     startNewConversation(false);
     setComposerEnabled(true);
-    elements.input.placeholder = "ඔබේ ප්‍රශ්නය මෙහි ලියන්න...";
+    updateModeUI();
     elements.input.focus();
   }
 
@@ -243,6 +255,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
           body: JSON.stringify({
             question,
             grade: elements.grade.value,
+            mode: getAnswerMode(),
+            language: getAnswerLanguage(),
             history: recentHistory
           })
         });
@@ -504,6 +518,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       id: createId(),
       title: makeConversationTitle(firstQuestion),
       grade: elements.grade.value,
+      mode: getAnswerMode(),
+      language: getAnswerLanguage(),
       createdAt: now,
       updatedAt: now,
       messages: []
@@ -555,11 +571,15 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     const createdAt = Number(value.createdAt) || Date.now();
     const updatedAt = Number(value.updatedAt) || createdAt;
     const grade = ["all", "7", "8", "9", "10", "11"].includes(String(value.grade)) ? String(value.grade) : "all";
+    const mode = ["subject", "general"].includes(String(value.mode)) ? String(value.mode) : "subject";
+    const language = ["si", "en"].includes(String(value.language)) ? String(value.language) : "si";
     const firstQuestion = messages.find((item) => item.role === "user")?.text || "";
     return {
       id: String(value.id || createId()),
       title: String(value.title || makeConversationTitle(firstQuestion)).slice(0, 80),
       grade,
+      mode,
+      language,
       createdAt,
       updatedAt,
       messages
@@ -583,6 +603,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
             id: createId(),
             title: makeConversationTitle(firstQuestion),
             grade: localStorage.getItem(GRADE_KEY) || "all",
+            mode: localStorage.getItem(MODE_KEY) || "subject",
+            language: localStorage.getItem(LANGUAGE_KEY) || "si",
             createdAt: now,
             updatedAt: now,
             messages
@@ -635,6 +657,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       elements.grade.value = conversation.grade;
       localStorage.setItem(GRADE_KEY, conversation.grade);
     }
+    setAnswerMode(conversation.mode || "subject", false);
+    setAnswerLanguage(conversation.language || "si", false);
     clearRenderedHistory();
     currentMessages.forEach((turn) => appendMessage(turn.role, turn.text));
     renderRecentList();
@@ -690,7 +714,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       open.type = "button";
       open.className = "recent-open";
       open.dataset.openConversation = conversation.id;
-      open.innerHTML = `<span class="recent-title">${escapeHtml(conversation.title)}</span><span class="recent-meta">${formatRecentDate(conversation.updatedAt)} · ${conversation.grade === "all" ? "7-11" : conversation.grade + " ශ්‍රේණිය"}</span>`;
+      open.innerHTML = `<span class="recent-title">${escapeHtml(conversation.title)}</span><span class="recent-meta">${formatRecentDate(conversation.updatedAt)} · ${conversation.mode === "general" ? "විෂය බාහිර" : (conversation.grade === "all" ? "විෂය 7-11" : "විෂය " + conversation.grade)} · ${conversation.language === "en" ? "EN" : "SI"}</span>`;
 
       const remove = document.createElement("button");
       remove.type = "button";
@@ -766,6 +790,112 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       return date.toLocaleTimeString("si-LK", { hour: "2-digit", minute: "2-digit" });
     }
     return date.toLocaleDateString("si-LK", { month: "short", day: "numeric" });
+  }
+
+  function initializePreferences() {
+    const savedMode = localStorage.getItem(MODE_KEY);
+    const savedLanguage = localStorage.getItem(LANGUAGE_KEY);
+    setAnswerMode(savedMode === "general" ? "general" : "subject", false);
+    setAnswerLanguage(savedLanguage === "en" ? "en" : "si", false);
+  }
+
+  function getAnswerMode() {
+    return document.body.dataset.answerMode === "general" ? "general" : "subject";
+  }
+
+  function getAnswerLanguage() {
+    return document.body.dataset.answerLanguage === "en" ? "en" : "si";
+  }
+
+  function setAnswerMode(mode, save = true) {
+    const next = mode === "general" ? "general" : "subject";
+    document.body.dataset.answerMode = next;
+    elements.subjectMode?.classList.toggle("active", next === "subject");
+    elements.generalMode?.classList.toggle("active", next === "general");
+    if (elements.gradeSection) elements.gradeSection.hidden = next === "general";
+    if (save) localStorage.setItem(MODE_KEY, next);
+    const active = getActiveConversation();
+    if (active && save) {
+      active.mode = next;
+      active.updatedAt = Date.now();
+      persistConversations();
+      renderRecentList();
+    }
+    updateModeUI();
+  }
+
+  function setAnswerLanguage(language, save = true) {
+    const next = language === "en" ? "en" : "si";
+    document.body.dataset.answerLanguage = next;
+    elements.langSi?.classList.toggle("active", next === "si");
+    elements.langEn?.classList.toggle("active", next === "en");
+    if (save) localStorage.setItem(LANGUAGE_KEY, next);
+    const active = getActiveConversation();
+    if (active && save) {
+      active.language = next;
+      active.updatedAt = Date.now();
+      persistConversations();
+      renderRecentList();
+    }
+    updateModeUI();
+  }
+
+  function updateModeUI() {
+    const mode = getAnswerMode();
+    const language = getAnswerLanguage();
+    const isEnglish = language === "en";
+
+    if (elements.welcomeTitle) {
+      elements.welcomeTitle.textContent = mode === "subject"
+        ? (isEnglish ? "Subject Content" : "විෂය කරුණු")
+        : (isEnglish ? "General Questions" : "විෂය බාහිර කරුණු");
+    }
+    if (elements.welcomeDescription) {
+      elements.welcomeDescription.textContent = mode === "subject"
+        ? (isEnglish
+          ? "Answers are produced only from the selected Grade 7–11 ICT textbooks."
+          : "තෝරාගත් 7–11 ICT පාඩම් පොත්වල තිබෙන කරුණු මත පමණක් පිළිතුරු ලබාදෙයි.")
+        : (isEnglish
+          ? "Ask any suitable question and receive a clear general-knowledge answer."
+          : "ඔබට අවශ්‍ය ඕනෑම සුදුසු ප්‍රශ්නයක් අසා සාමාන්‍ය දැනුමෙන් විසඳුම ලබාගන්න.");
+    }
+    if (elements.input) {
+      elements.input.placeholder = mode === "subject"
+        ? (isEnglish ? "Ask from the ICT textbooks..." : "ICT පාඩම් පොත්වලින් ප්‍රශ්නයක් අසන්න...")
+        : (isEnglish ? "Ask any question..." : "ඔබට අවශ්‍ය ඕනෑම ප්‍රශ්නයක් අසන්න...");
+    }
+
+    const subjectSi = [
+      "පරිගණක පද්ධතියක් යනු කුමක්ද?",
+      "දත්ත හා තොරතුරු අතර වෙනස",
+      "මෙහෙයුම් පද්ධතිය පැහැදිලි කරන්න",
+      "Boolean ද්වාර පිළිබඳ කෙටි සටහනක්"
+    ];
+    const subjectEn = [
+      "What is a computer system?",
+      "Difference between data and information",
+      "Explain an operating system",
+      "Give a short note on Boolean gates"
+    ];
+    const generalSi = [
+      "ත්‍රිකෝණයක වර්ගඵලය සොයන්නේ කොහොමද?",
+      "Pascal code උදාහරණයක් දෙන්න",
+      "ඉංග්‍රීසි වාක්‍යයක් සිංහලට පරිවර්තනය කරන්න",
+      "අධ්‍යයන කාලසටහනක් සකස් කරන්න"
+    ];
+    const generalEn = [
+      "How do I find the area of a triangle?",
+      "Give me a Pascal code example",
+      "Translate a Sinhala sentence into English",
+      "Create a study timetable"
+    ];
+    const prompts = mode === "subject"
+      ? (isEnglish ? subjectEn : subjectSi)
+      : (isEnglish ? generalEn : generalSi);
+    elements.quickPrompts.forEach((button, index) => {
+      const prefix = button.querySelector("span")?.outerHTML || "";
+      button.innerHTML = `${prefix} ${escapeHtml(prompts[index] || prompts[0])}`;
+    });
   }
 
   function initializeTheme() {

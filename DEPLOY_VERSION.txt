@@ -1,0 +1,1 @@
+easyict subject-general-language build: 20260713-modes-lang2-root

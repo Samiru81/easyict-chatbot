@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260713-chatgptui1" />
+  <link rel="stylesheet" href="styles.css?v=20260713-modes-lang2-root" />
 </head>
 <body>
   <div id="authOverlay" class="auth-overlay" hidden>
@@ -60,7 +60,7 @@
       </div>
 
       <section class="sidebar-section grade-section">
-        <h2>ICT පොත්</h2>
+        <h2>ශ්‍රේණිය තෝරන්න</h2>
         <label class="grade-control" for="gradeSelect">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></svg>
           <select id="gradeSelect">
@@ -110,12 +110,16 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
 
-        <div class="mode-switch" aria-label="ප්‍රධාන කොටස">
-          <button class="mode-button active" type="button">Chat</button>
-          <button id="booksTab" class="mode-button" type="button">ICT Books</button>
+        <div class="mode-switch" aria-label="පිළිතුරු වර්ගය">
+          <button id="subjectMode" class="mode-button active" type="button" data-answer-mode="subject">විෂය කරුණු</button>
+          <button id="generalMode" class="mode-button" type="button" data-answer-mode="general">විෂය බාහිර කරුණු</button>
         </div>
 
         <div class="workspace-actions">
+          <div class="language-switch" aria-label="පිළිතුරු භාෂාව">
+            <button id="langSi" class="language-button active" type="button" data-language="si">සිංහල</button>
+            <button id="langEn" class="language-button" type="button" data-language="en">English</button>
+          </div>
           <button id="clearChat" class="workspace-icon-btn" type="button" title="වත්මන් සංවාදය මකන්න" aria-label="වත්මන් සංවාදය මකන්න">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14M10 10v6m4-6v6"/></svg>
           </button>
@@ -131,8 +135,8 @@
           <article class="message assistant welcome-message">
             <div class="message-body">
               <div class="welcome-content">
-                <h1 id="welcomeTitle">ආයුබෝවන්.</h1>
-                <p>7 සිට 11 ශ්‍රේණිය දක්වා ICT පාඩම් පොත් ඇසුරෙන් සිංහලෙන් පැහැදිලි පිළිතුරු ලබාගන්න.</p>
+                <h1 id="welcomeTitle">විෂය කරුණු</h1>
+                <p id="welcomeDescription">7 සිට 11 ශ්‍රේණිය දක්වා ICT පාඩම් පොත්වල තිබෙන කරුණු මත පමණක් පිළිතුරු ලබාගන්න.</p>
                 <div class="quick-prompts" aria-label="උදාහරණ ප්‍රශ්න">
                   <button type="button"><span>＋</span> පරිගණක පද්ධතියක් යනු කුමක්ද?</button>
                   <button type="button"><span>✎</span> දත්ත හා තොරතුරු අතර වෙනස</button>
@@ -146,7 +150,6 @@
 
         <div class="composer-dock">
           <form id="chatForm" class="composer">
-            <button id="booksShortcut" class="composer-plus" type="button" title="ICT පොත් තෝරන්න" aria-label="ICT පොත් තෝරන්න">＋</button>
             <div class="input-wrap">
               <textarea id="questionInput" rows="1" maxlength="1500" placeholder="easyict Chat Bot වෙත අසන්න" aria-label="ඔබේ ප්‍රශ්නය"></textarea>
               <span id="charCount" class="char-count">0/1500</span>
@@ -171,7 +174,7 @@
     </article>
   </template>
 
-  <script src="config.js?v=20260713-chatgptui1"></script>
-  <script type="module" src="app.js?v=20260713-chatgptui1"></script>
+  <script src="config.js?v=20260713-modes-lang2-root"></script>
+  <script type="module" src="app.js?v=20260713-modes-lang2-root"></script>
 </body>
 </html>
