@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260713-modes-lang2-root" />
+  <link rel="stylesheet" href="styles.css?v=20260713-full-english-nav3" />
 </head>
 <body>
   <div id="authOverlay" class="auth-overlay" hidden>
@@ -22,18 +22,18 @@
         <img class="auth-logo-img" src="easyict-logo.png" alt="" />
       </div>
       <h2 id="authTitle">Google Login / Sign Up</h2>
-      <p class="auth-intro">Chat Bot භාවිතා කිරීමට ඔබේ Google account එකෙන් ඇතුළත් වන්න.</p>
+      <p id="authIntro" class="auth-intro">Chat Bot භාවිතා කිරීමට ඔබේ Google account එකෙන් ඇතුළත් වන්න.</p>
       <div id="authConfigWarning" class="auth-warning" hidden>
         Firebase setup එක තවම අවසන් කර නැත. <code>config.js</code> ගොනුව පරීක්ෂා කරන්න.
       </div>
       <div class="auth-provider-list">
         <button class="provider-btn google" type="button" data-auth-provider="google">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.8 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.5a4.7 4.7 0 0 1-2 3.1v2.6h3.3c1.9-1.8 3-4.4 3-7.5Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.8-2.3l-3.3-2.6c-.9.6-2.1 1-3.5 1-2.6 0-4.8-1.8-5.6-4.1H3v2.7A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 14a6 6 0 0 1 0-3.9V7.4H3a10 10 0 0 0 0 9.3L6.4 14Z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.9-2.8A9.7 9.7 0 0 0 3 7.4l3.4 2.7C7.2 7.7 9.4 5.9 12 5.9Z"/></svg>
-          <span>Continue with Google</span>
+          <span id="googleLoginText">Continue with Google</span>
         </button>
       </div>
       <p id="authMessage" class="auth-message" aria-live="polite"></p>
-      <small class="auth-note">Google සහ Firebase Authentication හරහා account එක තහවුරු කරයි.</small>
+      <small id="authNote" class="auth-note">Google සහ Firebase Authentication හරහා account එක තහවුරු කරයි.</small>
     </section>
   </div>
 
@@ -51,7 +51,7 @@
 
       <button id="newChat" class="new-chat-main" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
-        <span>නව සංවාදය</span>
+        <span id="newChatLabel">නව සංවාදය</span>
       </button>
 
       <div class="sidebar-search">
@@ -60,7 +60,7 @@
       </div>
 
       <section class="sidebar-section grade-section">
-        <h2>ශ්‍රේණිය තෝරන්න</h2>
+        <h2 id="gradeSectionTitle">ශ්‍රේණිය තෝරන්න</h2>
         <label class="grade-control" for="gradeSelect">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></svg>
           <select id="gradeSelect">
@@ -75,7 +75,7 @@
       </section>
 
       <section class="sidebar-section recents-section" aria-label="මෑත සංවාද">
-        <h2>මෑත සංවාද</h2>
+        <h2 id="recentSectionTitle">මෑත සංවාද</h2>
         <div id="recentList" class="recent-list">
           <p id="recentEmpty" class="recent-empty">Login වූ පසු සංවාද මෙහි පෙන්වයි.</p>
         </div>
@@ -92,13 +92,13 @@
           <div id="userAvatar" class="user-avatar" aria-hidden="true">U</div>
           <div class="user-copy">
             <span id="userName" class="user-name">User</span>
-            <small>easyict account</small>
+            <small id="userAccountLabel">easyict account</small>
           </div>
           <button id="signOutButton" class="signout-btn" type="button" title="Sign Out" aria-label="Sign Out">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg>
           </button>
         </div>
-        <p class="sidebar-credit">Developed By <strong>Samiru Dinushan</strong></p>
+        <p class="sidebar-credit"><span id="developerLabel">Developed By</span> <strong>Samiru Dinushan</strong></p>
       </div>
     </aside>
 
@@ -158,7 +158,7 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-5 14-2-5-7-2Z"/><path d="m12 14 7-9"/></svg>
             </button>
           </form>
-          <p class="composer-hint">AI පිළිතුරු වැරදි විය හැක. පොතේ මූලාශ්‍රයද පරීක්ෂා කරන්න.</p>
+          <p id="composerHint" class="composer-hint">AI පිළිතුරු වැරදි විය හැක. පොතේ මූලාශ්‍රයද පරීක්ෂා කරන්න.</p>
         </div>
       </main>
     </section>
@@ -174,7 +174,7 @@
     </article>
   </template>
 
-  <script src="config.js?v=20260713-modes-lang2-root"></script>
-  <script type="module" src="app.js?v=20260713-modes-lang2-root"></script>
+  <script src="config.js?v=20260713-full-english-nav3"></script>
+  <script type="module" src="app.js?v=20260713-full-english-nav3"></script>
 </body>
 </html>
