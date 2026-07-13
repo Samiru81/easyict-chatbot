@@ -1,1 +1,1 @@
-easyict clear navigation + profile info build: 20260713-navprofile1
+easyict one-deploy premium favicon + footer build: 20260713-premium2
