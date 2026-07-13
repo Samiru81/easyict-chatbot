@@ -36,7 +36,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     generalMode: document.getElementById("generalMode"),
     langSi: document.getElementById("langSi"),
     langEn: document.getElementById("langEn"),
-    gradeSection: document.querySelector(".grade-section")
+    gradeSection: document.querySelector(".grade-section"),
+    composerHint: document.getElementById("composerHint")
   };
 
   const LEGACY_STORAGE_PREFIX = "easyict-chat-v2";
@@ -49,6 +50,157 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   const MAX_CONVERSATIONS = 30;
   const MAX_MESSAGES_PER_CONVERSATION = 40;
 
+
+  const UI_TEXT = {
+    si: {
+      documentTitle: "easyict Chat Bot",
+      metaDescription: "7-11 ශ්‍රේණි ICT පාඩම් පොත් ඇසුරෙන් සිංහලෙන් පිළිතුරු දෙන AI සහායකයෙක්.",
+      authTitle: "Google Login / Sign Up",
+      authIntro: "Chat Bot භාවිතා කිරීමට ඔබේ Google account එකෙන් ඇතුළත් වන්න.",
+      authWarning: "Firebase setup එක තවම අවසන් කර නැත. <code>config.js</code> ගොනුව පරීක්ෂා කරන්න.",
+      continueGoogle: "Continue with Google",
+      authNote: "Google සහ Firebase Authentication හරහා account එක තහවුරු කරයි.",
+      mainMenu: "ප්‍රධාන මෙනුව",
+      closeMenu: "මෙනුව වසන්න",
+      newChat: "නව සංවාදය",
+      searchChats: "සංවාද සොයන්න",
+      selectGrade: "ශ්‍රේණිය තෝරන්න",
+      allGrades: "සියලුම ශ්‍රේණි (7-11)",
+      grade: "{grade} ශ්‍රේණිය",
+      recentChats: "මෑත සංවාද",
+      recentEmptySignedIn: "මෑත සංවාද තවම නැත.",
+      recentEmptySignedOut: "Login වූ පසු සංවාද මෙහි පෙන්වයි.",
+      serviceChecking: "සේවාව පරීක්ෂා කරමින්...",
+      googleLogin: "Google Login",
+      signOut: "Sign Out",
+      openMenu: "මෙනුව විවෘත කරන්න",
+      answerType: "පිළිතුරු වර්ගය",
+      subjectMode: "විෂය කරුණු",
+      generalMode: "විෂය බාහිර කරුණු",
+      answerLanguage: "පිළිතුරු භාෂාව",
+      sinhala: "සිංහල",
+      english: "English",
+      clearChat: "වත්මන් සංවාදය මකන්න",
+      themeToggle: "තේමාව මාරු කරන්න",
+      questionAria: "ඔබේ ප්‍රශ්නය",
+      sendQuestion: "ප්‍රශ්නය යවන්න",
+      composerHint: "AI පිළිතුරු වැරදි විය හැක. පොතේ මූලාශ්‍රයද පරීක්ෂා කරන්න.",
+      loggedOutPlaceholder: "Chat Bot භාවිතා කිරීමට Google account එකෙන් Login වන්න...",
+      subjectPlaceholder: "ICT පාඩම් පොත්වලින් ප්‍රශ්නයක් අසන්න...",
+      generalPlaceholder: "ඔබට අවශ්‍ය ඕනෑම ප්‍රශ්නයක් අසන්න...",
+      subjectWelcomeTitle: "විෂය කරුණු",
+      generalWelcomeTitle: "විෂය බාහිර කරුණු",
+      subjectWelcomeDescription: "තෝරාගත් 7–11 ICT පාඩම් පොත්වල තිබෙන කරුණු මත පමණක් පිළිතුරු ලබාදෙයි.",
+      generalWelcomeDescription: "ඔබට අවශ්‍ය ඕනෑම සුදුසු ප්‍රශ්නයක් අසා සාමාන්‍ය දැනුමෙන් විසඳුම ලබාගන්න.",
+      apiConfigError: "මෙම වෙබ් අඩවියේ API සැකසුම තවම අවසන් කර නැත. Cloudflare Worker URL එක `config.js` ගොනුවේ පරීක්ෂා කරන්න.",
+      serviceError: "සේවා දෝෂයක් ({status})",
+      noAnswer: "පිළිතුරක් ලැබුණේ නැත.",
+      serviceActive: "AI සේවාව සක්‍රියයි",
+      connectionInterrupted: "⚠️ සම්බන්ධතාවය අතරමඟ නතර විය. නැවත Send කර උත්සාහ කරන්න.",
+      serviceOffline: "AI සේවාව සම්බන්ධ නැත",
+      serviceTemporary: "AI සේවාවේ තාවකාලික දෝෂයක්",
+      loginExpired: "Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.",
+      unableConnect: "AI සේවාවට සම්බන්ධ වීමට නොහැකි විය.",
+      preparingAnswer: "පිළිතුර සකස් කරමින්...",
+      page: "පිටුව",
+      textbook: "පාඩම් පොත",
+      failedTitle: "පිළිතුර ලබාගැනීමට නොහැකි විය",
+      retry: "නැවත උත්සාහ කරන්න",
+      user: "ඔබ",
+      newConversation: "නව සංවාදය",
+      oldConversation: "පැරණි සංවාදය",
+      deleteConfirm: "“{title}” සංවාදය මකා දමන්නද?",
+      deleteConversation: "සංවාදය මකන්න",
+      recentGeneral: "විෂය බාහිර",
+      recentSubjectAll: "විෂය 7-11",
+      recentSubjectGrade: "විෂය {grade}",
+      apiNotConfigured: "API URL එක සකසා නැත",
+      timeoutError: "පිළිතුර සඳහා කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.",
+      networkError: "අන්තර්ජාල සම්බන්ධතාවය හෝ Cloudflare Worker සම්බන්ධතාවය පරීක්ෂා කරන්න.",
+      authError: "Gemini API key එක හෝ API permission එක පරීක්ෂා කරන්න.",
+      quotaError: "AI භාවිත සීමාව තාවකාලිකව ඉක්මවා ඇත. මිනිත්තුවකින් නැවත උත්සාහ කරන්න.",
+      temporaryError: "AI සේවාවේ තාවකාලික දෝෂයක් ඇතිවිය. ටික වේලාවකින් නැවත උත්සාහ කරන්න."
+    },
+    en: {
+      documentTitle: "easyict Chat Bot",
+      metaDescription: "An AI assistant that answers in English using Grade 7-11 ICT textbooks and general knowledge.",
+      authTitle: "Google Login / Sign Up",
+      authIntro: "Sign in with your Google account to use the Chat Bot.",
+      authWarning: "Firebase setup is not complete. Check the <code>config.js</code> file.",
+      continueGoogle: "Continue with Google",
+      authNote: "Your account is verified through Google and Firebase Authentication.",
+      mainMenu: "Main menu",
+      closeMenu: "Close menu",
+      newChat: "New chat",
+      searchChats: "Search chats",
+      selectGrade: "Select grade",
+      allGrades: "All grades (7-11)",
+      grade: "Grade {grade}",
+      recentChats: "Recent chats",
+      recentEmptySignedIn: "No recent chats yet.",
+      recentEmptySignedOut: "Your chats will appear here after you sign in.",
+      serviceChecking: "Checking service...",
+      googleLogin: "Google Login",
+      signOut: "Sign out",
+      openMenu: "Open menu",
+      answerType: "Answer type",
+      subjectMode: "Subject Content",
+      generalMode: "General Questions",
+      answerLanguage: "Answer language",
+      sinhala: "Sinhala",
+      english: "English",
+      clearChat: "Delete current chat",
+      themeToggle: "Change theme",
+      questionAria: "Your question",
+      sendQuestion: "Send question",
+      composerHint: "AI answers may be inaccurate. Check the textbook sources as well.",
+      loggedOutPlaceholder: "Sign in with your Google account to use the Chat Bot...",
+      subjectPlaceholder: "Ask a question from the ICT textbooks...",
+      generalPlaceholder: "Ask any question...",
+      subjectWelcomeTitle: "Subject Content",
+      generalWelcomeTitle: "General Questions",
+      subjectWelcomeDescription: "Answers are produced only from the selected Grade 7–11 ICT textbooks.",
+      generalWelcomeDescription: "Ask any suitable question and receive a clear general-knowledge answer.",
+      apiConfigError: "The website API setup is not complete. Check the Cloudflare Worker URL in `config.js`.",
+      serviceError: "Service error ({status})",
+      noAnswer: "No answer was received.",
+      serviceActive: "AI service is online",
+      connectionInterrupted: "⚠️ The connection stopped before the answer was complete. Please send the question again.",
+      serviceOffline: "AI service is offline",
+      serviceTemporary: "Temporary AI service error",
+      loginExpired: "Your Google Login session has expired. Please sign in again.",
+      unableConnect: "Unable to connect to the AI service.",
+      preparingAnswer: "Preparing the answer...",
+      page: "Page",
+      textbook: "Textbook",
+      failedTitle: "Unable to get an answer",
+      retry: "Try again",
+      user: "You",
+      newConversation: "New chat",
+      oldConversation: "Previous chat",
+      deleteConfirm: "Delete the chat “{title}”?",
+      deleteConversation: "Delete chat",
+      recentGeneral: "General",
+      recentSubjectAll: "Subject 7-11",
+      recentSubjectGrade: "Subject Grade {grade}",
+      apiNotConfigured: "API URL is not configured",
+      timeoutError: "The answer timed out. Please try again.",
+      networkError: "Check your internet connection or the Cloudflare Worker connection.",
+      authError: "Check the Gemini API key or API permissions.",
+      quotaError: "The AI usage limit has been reached temporarily. Try again in a minute.",
+      temporaryError: "The AI service has a temporary error. Please try again shortly."
+    }
+  };
+
+  function tr(key, values = {}) {
+    const language = document.body?.dataset?.answerLanguage === "en" ? "en" : "si";
+    let value = UI_TEXT[language]?.[key] ?? UI_TEXT.si[key] ?? key;
+    Object.entries(values).forEach(([name, replacement]) => {
+      value = String(value).replaceAll(`{${name}}`, String(replacement));
+    });
+    return value;
+  }
+
   let conversations = [];
   let currentMessages = [];
   let conversationStorageKey = "";
@@ -59,6 +211,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   initializeTheme();
   initializeGrade();
   initializePreferences();
+  applyInterfaceLanguage();
   bindEvents();
   autoResize();
   updateCounter();
@@ -67,6 +220,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   checkService();
   window.addEventListener("online", checkService);
   window.setInterval(checkService, 60000);
+  window.addEventListener("pageshow", () => {
+    applyInterfaceLanguage();
+    updateModeUI();
+  });
 
   function bindEvents() {
     elements.form.addEventListener("submit", onSubmit);
@@ -131,7 +288,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     if (!activeUser) {
       updateModeUI();
       setComposerEnabled(false);
-      elements.input.placeholder = "Chat Bot භාවිතා කිරීමට Google account එකෙන් Login වන්න...";
+      elements.input.placeholder = tr("loggedOutPlaceholder");
       return;
     }
 
@@ -174,7 +331,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     updateCounter();
 
     if (!isConfigured) {
-      appendMessage("assistant", "මෙම වෙබ් අඩවියේ API සැකසුම තවම අවසන් කර නැත. Cloudflare Worker URL එක `config.js` ගොනුවේ පරීක්ෂා කරන්න.", [], true);
+      appendMessage("assistant", tr("apiConfigError"), [], true);
       return;
     }
 
@@ -193,7 +350,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         if (response.status === 401) showAuthModal();
-        const requestError = new Error(data.error || `සේවා දෝෂයක් (${response.status})`);
+        const requestError = new Error(data.error || tr("serviceError", { status: response.status }));
         requestError.status = response.status;
         requestError.code = data.code || "";
         throw requestError;
@@ -206,18 +363,18 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
         result = await consumeChatStream(response, streamNode);
       } else {
         const data = await response.json().catch(() => ({}));
-        const answer = data.answer || "පිළිතුරක් ලැබුණේ නැත.";
+        const answer = data.answer || tr("noAnswer");
         updateStreamingNode(streamNode, answer, Array.isArray(data.sources) ? data.sources : []);
         result = { answer, sources: Array.isArray(data.sources) ? data.sources : [] };
       }
 
-      if (!result.answer.trim()) throw new Error("පිළිතුරක් ලැබුණේ නැත.");
+      if (!result.answer.trim()) throw new Error(tr("noAnswer"));
       saveTurn({ role: "assistant", text: result.answer });
-      setStatus(true, "AI සේවාව සක්‍රියයි");
+      setStatus(true, tr("serviceActive"));
     } catch (error) {
       const existingText = streamNode.dataset.answer || "";
       if (existingText.trim()) {
-        const note = "\n\n⚠️ සම්බන්ධතාවය අතරමඟ නතර විය. නැවත Send කර උත්සාහ කරන්න.";
+        const note = `\n\n${tr("connectionInterrupted")}`;
         updateStreamingNode(streamNode, existingText + note, [], true);
       } else {
         showRetryError(streamNode, question, error);
@@ -225,8 +382,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
       const message = error instanceof Error ? error.message : String(error || "");
       setStatus(false, /Failed to fetch|NetworkError|fetch failed/i.test(message)
-        ? "AI සේවාව සම්බන්ධ නැත"
-        : "AI සේවාවේ තාවකාලික දෝෂයක්");
+        ? tr("serviceOffline")
+        : tr("serviceTemporary"));
     } finally {
       window.clearTimeout(requestTimeout);
       sending = false;
@@ -237,7 +394,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   async function requestChat(question, recentHistory, forceRefresh, signal) {
     const token = await getIdToken(forceRefresh);
-    if (!token) throw new Error("Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.");
+    if (!token) throw new Error(tr("loginExpired"));
 
     let lastError;
     for (let attempt = 1; attempt <= 2; attempt += 1) {
@@ -270,7 +427,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
         await delay(900 * attempt);
       }
     }
-    throw lastError || new Error("AI සේවාවට සම්බන්ධ වීමට නොහැකි විය.");
+    throw lastError || new Error(tr("unableConnect"));
   }
 
   async function consumeChatStream(response, node) {
@@ -305,7 +462,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
         sources = payload.sources;
         queueRender();
       } else if (parsed.event === "status" && !answer) {
-        setStreamingStatus(node, payload.message || "පිළිතුර සකස් කරමින්...");
+        setStreamingStatus(node, payload.message || tr("preparingAnswer"));
       } else if (parsed.event === "error") {
         streamError = new Error(payload.error || "AI stream error");
         streamError.status = Number(payload.status || 0);
@@ -369,8 +526,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       sources.slice(0, 8).forEach((source) => {
         const chip = document.createElement("span");
         chip.className = "source-chip";
-        const page = source.page ? ` • පිටුව ${source.page}` : "";
-        chip.textContent = `${source.file || "පාඩම් පොත"}${page}`;
+        const page = source.page ? ` • ${tr("page")} ${source.page}` : "";
+        chip.textContent = `${source.file || tr("textbook")}${page}`;
         if (source.snippet) chip.title = source.snippet;
         sourceBox.appendChild(chip);
       });
@@ -391,10 +548,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     bubble.classList.add("error-bubble");
     bubble.innerHTML = `
       <div class="request-error-content">
-        <strong>පිළිතුර ලබාගැනීමට නොහැකි විය</strong>
+        <strong>${escapeHtml(tr("failedTitle"))}</strong>
         <p>${escapeHtml(message)}</p>
         ${code ? `<small>${escapeHtml(String(code))}</small>` : ""}
-        <button type="button" class="retry-answer-btn">↻ නැවත උත්සාහ කරන්න</button>
+        <button type="button" class="retry-answer-btn">↻ ${escapeHtml(tr("retry"))}</button>
       </div>`;
     sourceBox.hidden = true;
     sourceBox.innerHTML = "";
@@ -427,7 +584,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     const sourceBox = node.querySelector(".sources");
 
     node.classList.add(role);
-    avatar.textContent = role === "user" ? "ඔබ" : "AI";
+    avatar.textContent = role === "user" ? tr("user") : "AI";
     bubble.innerHTML = role === "assistant" ? renderMarkdown(text) : escapeHtml(text).replace(/\n/g, "<br>");
     if (isError) bubble.classList.add("error-bubble");
 
@@ -436,8 +593,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       sources.slice(0, 8).forEach((source) => {
         const chip = document.createElement("span");
         chip.className = "source-chip";
-        const page = source.page ? ` • පිටුව ${source.page}` : "";
-        chip.textContent = `${source.file || "පාඩම් පොත"}${page}`;
+        const page = source.page ? ` • ${tr("page")} ${source.page}` : "";
+        chip.textContent = `${source.file || tr("textbook")}${page}`;
         if (source.snippet) chip.title = source.snippet;
         sourceBox.appendChild(chip);
       });
@@ -453,7 +610,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     const node = elements.template.content.firstElementChild.cloneNode(true);
     node.classList.add("assistant");
     node.querySelector(".avatar").textContent = "AI";
-    node.querySelector(".bubble").innerHTML = '<span class="typing" aria-label="පිළිතුර සකස් කරමින්"><i></i><i></i><i></i></span>';
+    node.querySelector(".bubble").innerHTML = `<span class="typing" aria-label="${escapeHtml(tr("preparingAnswer"))}"><i></i><i></i><i></i></span>`;
     elements.messages.appendChild(node);
     scrollToBottom();
     return node;
@@ -539,7 +696,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     conversation.messages.push({ role: turn.role, text: turn.text });
     while (conversation.messages.length > MAX_MESSAGES_PER_CONVERSATION) conversation.messages.shift();
     conversation.updatedAt = Date.now();
-    if (!conversation.title || conversation.title === "නව සංවාදය") {
+    if (!conversation.title || ["නව සංවාදය", "New chat"].includes(conversation.title)) {
       const firstQuestion = conversation.messages.find((item) => item.role === "user")?.text || "";
       conversation.title = makeConversationTitle(firstQuestion);
     }
@@ -597,7 +754,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
           .filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.text === "string")
           .slice(-MAX_MESSAGES_PER_CONVERSATION);
         if (messages.length) {
-          const firstQuestion = messages.find((item) => item.role === "user")?.text || "පැරණි සංවාදය";
+          const firstQuestion = messages.find((item) => item.role === "user")?.text || tr("oldConversation");
           const now = Date.now() - 1000;
           conversations.unshift({
             id: createId(),
@@ -668,7 +825,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   function deleteConversation(id) {
     const conversation = conversations.find((item) => item.id === id);
     if (!conversation) return;
-    const ok = window.confirm(`“${conversation.title}” සංවාදය මකා දමන්නද?`);
+    const ok = window.confirm(tr("deleteConfirm", { title: conversation.title }));
     if (!ok) return;
     conversations = conversations.filter((item) => item.id !== id);
     if (activeConversationId === id) {
@@ -700,7 +857,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     if (!activeUser || !conversations.length) {
       const empty = document.createElement("p");
       empty.className = "recent-empty";
-      empty.textContent = activeUser ? "මෑත සංවාද තවම නැත." : "Login වූ පසු සංවාද මෙහි පෙන්වයි.";
+      empty.textContent = activeUser ? tr("recentEmptySignedIn") : tr("recentEmptySignedOut");
       elements.recentList.appendChild(empty);
       return;
     }
@@ -714,14 +871,18 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       open.type = "button";
       open.className = "recent-open";
       open.dataset.openConversation = conversation.id;
-      open.innerHTML = `<span class="recent-title">${escapeHtml(conversation.title)}</span><span class="recent-meta">${formatRecentDate(conversation.updatedAt)} · ${conversation.mode === "general" ? "විෂය බාහිර" : (conversation.grade === "all" ? "විෂය 7-11" : "විෂය " + conversation.grade)} · ${conversation.language === "en" ? "EN" : "SI"}</span>`;
+      const recentMode = conversation.mode === "general"
+        ? tr("recentGeneral")
+        : (conversation.grade === "all" ? tr("recentSubjectAll") : tr("recentSubjectGrade", { grade: conversation.grade }));
+      const displayTitle = ["නව සංවාදය", "New chat"].includes(conversation.title) ? tr("newConversation") : conversation.title;
+      open.innerHTML = `<span class="recent-title">${escapeHtml(displayTitle)}</span><span class="recent-meta">${formatRecentDate(conversation.updatedAt)} · ${escapeHtml(recentMode)} · ${conversation.language === "en" ? "EN" : "SI"}</span>`;
 
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "recent-delete";
       remove.dataset.deleteConversation = conversation.id;
-      remove.title = "සංවාදය මකන්න";
-      remove.setAttribute("aria-label", `${conversation.title} සංවාදය මකන්න`);
+      remove.title = tr("deleteConversation");
+      remove.setAttribute("aria-label", `${tr("deleteConversation")}: ${conversation.title}`);
       remove.textContent = "×";
 
       row.append(open, remove);
@@ -732,9 +893,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   function filterRecentList() {
     if (!elements.recentList) return;
-    const query = String(elements.chatSearch?.value || "").trim().toLocaleLowerCase("si-LK");
+    const locale = getAnswerLanguage() === "en" ? "en-US" : "si-LK";
+    const query = String(elements.chatSearch?.value || "").trim().toLocaleLowerCase(locale);
     elements.recentList.querySelectorAll(".recent-item").forEach((item) => {
-      const title = String(item.querySelector(".recent-title")?.textContent || "").toLocaleLowerCase("si-LK");
+      const title = String(item.querySelector(".recent-title")?.textContent || "").toLocaleLowerCase(locale);
       item.hidden = Boolean(query && !title.includes(query));
     });
   }
@@ -779,17 +941,18 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   function makeConversationTitle(question) {
     const text = String(question || "").replace(/\s+/g, " ").trim();
-    if (!text) return "නව සංවාදය";
+    if (!text) return tr("newConversation");
     return text.length > 48 ? `${text.slice(0, 47)}…` : text;
   }
 
   function formatRecentDate(timestamp) {
     const date = new Date(Number(timestamp) || Date.now());
     const today = new Date();
+    const locale = getAnswerLanguage() === "en" ? "en-US" : "si-LK";
     if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString("si-LK", { hour: "2-digit", minute: "2-digit" });
+      return date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
     }
-    return date.toLocaleDateString("si-LK", { month: "short", day: "numeric" });
+    return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
   }
 
   function initializePreferences() {
@@ -827,6 +990,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   function setAnswerLanguage(language, save = true) {
     const next = language === "en" ? "en" : "si";
     document.body.dataset.answerLanguage = next;
+    document.documentElement.lang = next === "en" ? "en" : "si";
     elements.langSi?.classList.toggle("active", next === "si");
     elements.langEn?.classList.toggle("active", next === "en");
     if (save) localStorage.setItem(LANGUAGE_KEY, next);
@@ -835,34 +999,117 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       active.language = next;
       active.updatedAt = Date.now();
       persistConversations();
-      renderRecentList();
     }
+    applyInterfaceLanguage();
     updateModeUI();
+    renderRecentList();
+    window.dispatchEvent(new CustomEvent("easyict-language-change", { detail: { language: next } }));
+    checkService();
+  }
+
+  function applyInterfaceLanguage() {
+    const isEnglish = getAnswerLanguage() === "en";
+    document.documentElement.lang = isEnglish ? "en" : "si";
+    document.title = tr("documentTitle");
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) metaDescription.content = tr("metaDescription");
+
+    const first = (...selectors) => {
+      for (const selector of selectors) {
+        const node = typeof selector === "string" ? document.querySelector(selector) : selector;
+        if (node) return node;
+      }
+      return null;
+    };
+    const setText = (value, ...selectors) => {
+      const node = first(...selectors);
+      if (node) node.textContent = value;
+    };
+    const setAttr = (name, value, ...selectors) => {
+      const node = first(...selectors);
+      if (node) node.setAttribute(name, value);
+    };
+
+    // Authentication screen
+    setText(tr("authTitle"), "#authTitle", ".auth-card h2");
+    setText(tr("authIntro"), "#authIntro", ".auth-intro");
+    const authWarning = first("#authConfigWarning", ".auth-warning");
+    if (authWarning) authWarning.innerHTML = tr("authWarning");
+    setText(tr("continueGoogle"), "#authGoogleText", ".provider-btn.google span");
+    setText(tr("authNote"), "#authNote", ".auth-note");
+
+    // Sidebar — supports both the latest HTML and older cached HTML.
+    setAttr("aria-label", tr("mainMenu"), "#appSidebar", ".app-sidebar");
+    setAttr("aria-label", tr("closeMenu"), "#sidebarClose", ".sidebar-close");
+    setAttr("title", tr("closeMenu"), "#sidebarClose", ".sidebar-close");
+    setText(tr("newChat"), "#newChatText", "#newChat span", ".new-chat-main span");
+    if (elements.chatSearch) {
+      elements.chatSearch.placeholder = tr("searchChats");
+      elements.chatSearch.setAttribute("aria-label", tr("searchChats"));
+    }
+    setText(tr("selectGrade"), "#gradeHeading", ".grade-section h2");
+    setText(tr("allGrades"), "#gradeAllOption", '#gradeSelect option[value="all"]');
+    ["7", "8", "9", "10", "11"].forEach((grade) => {
+      setText(tr("grade", { grade }), `#grade${grade}Option`, `#gradeSelect option[value="${grade}"]`);
+    });
+    setText(tr("recentChats"), "#recentHeading", ".recents-section h2");
+    setAttr("aria-label", tr("recentChats"), ".recents-section");
+    setText(tr("googleLogin"), "#openAuth", ".login-btn");
+    setAttr("title", tr("signOut"), "#signOutButton", ".signout-btn");
+    setAttr("aria-label", tr("signOut"), "#signOutButton", ".signout-btn");
+
+    // Header controls
+    setAttr("aria-label", tr("openMenu"), "#sidebarToggle");
+    setAttr("title", tr("openMenu"), "#sidebarToggle");
+    setAttr("aria-label", tr("answerType"), ".mode-switch");
+    setText(tr("subjectMode"), "#subjectMode", '[data-answer-mode="subject"]');
+    setText(tr("generalMode"), "#generalMode", '[data-answer-mode="general"]');
+    setAttr("aria-label", tr("answerLanguage"), ".language-switch");
+    setText(tr("sinhala"), "#langSi", '[data-language="si"]');
+    setText(tr("english"), "#langEn", '[data-language="en"]');
+    setAttr("title", tr("clearChat"), "#clearChat");
+    setAttr("aria-label", tr("clearChat"), "#clearChat");
+    setAttr("title", tr("themeToggle"), "#themeToggle");
+    setAttr("aria-label", tr("themeToggle"), "#themeToggle");
+
+    // Composer and service text
+    setAttr("aria-label", tr("questionAria"), "#questionInput");
+    setAttr("aria-label", tr("sendQuestion"), "#sendButton");
+    setText(tr("composerHint"), "#composerHint", ".composer-hint");
+    if (elements.status) elements.status.textContent = tr("serviceChecking");
+    if (!activeUser && elements.input) elements.input.placeholder = tr("loggedOutPlaceholder");
+
+    // Translate already-rendered dynamic UI pieces.
+    elements.messages?.querySelectorAll(".message.user .avatar").forEach((node) => { node.textContent = tr("user"); });
+    elements.messages?.querySelectorAll(".source-chip").forEach((node) => {
+      node.textContent = isEnglish
+        ? node.textContent.replace(" • පිටුව ", " • Page ").replace(/^පාඩම් පොත/, "Textbook")
+        : node.textContent.replace(" • Page ", " • පිටුව ").replace(/^Textbook/, "පාඩම් පොත");
+    });
+    elements.messages?.querySelectorAll(".request-error-content").forEach((box) => {
+      const title = box.querySelector("strong");
+      const retry = box.querySelector(".retry-answer-btn");
+      if (title) title.textContent = tr("failedTitle");
+      if (retry) retry.textContent = `↻ ${tr("retry")}`;
+    });
+
+    // Keep the sidebar list and mode view in sync immediately.
+    updateModeUI();
+    renderRecentList();
   }
 
   function updateModeUI() {
     const mode = getAnswerMode();
-    const language = getAnswerLanguage();
-    const isEnglish = language === "en";
+    const isEnglish = getAnswerLanguage() === "en";
 
     if (elements.welcomeTitle) {
-      elements.welcomeTitle.textContent = mode === "subject"
-        ? (isEnglish ? "Subject Content" : "විෂය කරුණු")
-        : (isEnglish ? "General Questions" : "විෂය බාහිර කරුණු");
+      elements.welcomeTitle.textContent = mode === "subject" ? tr("subjectWelcomeTitle") : tr("generalWelcomeTitle");
     }
     if (elements.welcomeDescription) {
-      elements.welcomeDescription.textContent = mode === "subject"
-        ? (isEnglish
-          ? "Answers are produced only from the selected Grade 7–11 ICT textbooks."
-          : "තෝරාගත් 7–11 ICT පාඩම් පොත්වල තිබෙන කරුණු මත පමණක් පිළිතුරු ලබාදෙයි.")
-        : (isEnglish
-          ? "Ask any suitable question and receive a clear general-knowledge answer."
-          : "ඔබට අවශ්‍ය ඕනෑම සුදුසු ප්‍රශ්නයක් අසා සාමාන්‍ය දැනුමෙන් විසඳුම ලබාගන්න.");
+      elements.welcomeDescription.textContent = mode === "subject" ? tr("subjectWelcomeDescription") : tr("generalWelcomeDescription");
     }
-    if (elements.input) {
-      elements.input.placeholder = mode === "subject"
-        ? (isEnglish ? "Ask from the ICT textbooks..." : "ICT පාඩම් පොත්වලින් ප්‍රශ්නයක් අසන්න...")
-        : (isEnglish ? "Ask any question..." : "ඔබට අවශ්‍ය ඕනෑම ප්‍රශ්නයක් අසන්න...");
+    if (elements.input && activeUser) {
+      elements.input.placeholder = mode === "subject" ? tr("subjectPlaceholder") : tr("generalPlaceholder");
     }
 
     const subjectSi = [
@@ -873,7 +1120,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     ];
     const subjectEn = [
       "What is a computer system?",
-      "Difference between data and information",
+      "What is the difference between data and information?",
       "Explain an operating system",
       "Give a short note on Boolean gates"
     ];
@@ -930,15 +1177,15 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   async function checkService() {
     if (!isConfigured) {
-      setStatus(false, "API URL එක සකසා නැත");
+      setStatus(false, tr("apiNotConfigured"));
       return;
     }
     try {
       const response = await fetch(`${API_URL}/health?t=${Date.now()}`, { method: "GET", mode: "cors", cache: "no-store" });
       if (!response.ok) throw new Error("offline");
-      setStatus(true, "AI සේවාව සක්‍රියයි");
+      setStatus(true, tr("serviceActive"));
     } catch {
-      setStatus(false, "AI සේවාව සම්බන්ධ නැත");
+      setStatus(false, tr("serviceOffline"));
     }
   }
 
@@ -952,13 +1199,13 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     const message = error instanceof Error ? error.message : String(error || "");
     const status = Number(error?.status || 0);
     const code = String(error?.code || "");
-    if (/AbortError|aborted/i.test(message) || status === 504) return "පිළිතුර සඳහා කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.";
-    if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "අන්තර්ජාල සම්බන්ධතාවය හෝ Cloudflare Worker සම්බන්ධතාවය පරීක්ෂා කරන්න.";
-    if (status === 401 || /INVALID_LOGIN|Login session/i.test(code + message)) return "Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.";
-    if (status === 403 || /AUTH_ERROR/i.test(code)) return "Gemini API key එක හෝ API permission එක පරීක්ෂා කරන්න.";
-    if (status === 429 || /RATE_LIMIT|rate|quota/i.test(code + message)) return "AI භාවිත සීමාව තාවකාලිකව ඉක්මවා ඇත. මිනිත්තුවකින් නැවත උත්සාහ කරන්න.";
-    if ([500, 502, 503, 504].includes(status) || /TEMPORARY_ERROR|temporary|තාවකාලික/i.test(code + message)) return "AI සේවාවේ තාවකාලික දෝෂයක් ඇතිවිය. ටික වේලාවකින් නැවත උත්සාහ කරන්න.";
-    return message || "AI සේවාවට සම්බන්ධ වීමට නොහැකි විය.";
+    if (/AbortError|aborted/i.test(message) || status === 504) return tr("timeoutError");
+    if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return tr("networkError");
+    if (status === 401 || /INVALID_LOGIN|Login session/i.test(code + message)) return tr("loginExpired");
+    if (status === 403 || /AUTH_ERROR/i.test(code)) return tr("authError");
+    if (status === 429 || /RATE_LIMIT|rate|quota/i.test(code + message)) return tr("quotaError");
+    if ([500, 502, 503, 504].includes(status) || /TEMPORARY_ERROR|temporary|තාවකාලික/i.test(code + message)) return tr("temporaryError");
+    return message || tr("unableConnect");
   }
 
   function delay(ms) {

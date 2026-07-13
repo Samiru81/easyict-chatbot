@@ -1,1 +1,1 @@
-easyict one-deploy premium favicon + footer build: 20260713-premium2
+easyict full English UI fixed build: 20260713-fullenglish2-fixed

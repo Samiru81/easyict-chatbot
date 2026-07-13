@@ -32,7 +32,11 @@ const elements = {
   userInitials: document.getElementById("userInitials"),
   userName: document.getElementById("userName"),
   userEmail: document.getElementById("userEmail"),
-  signOutButton: document.getElementById("signOutButton")
+  signOutButton: document.getElementById("signOutButton"),
+  title: document.getElementById("authTitle"),
+  intro: document.getElementById("authIntro"),
+  googleText: document.getElementById("authGoogleText"),
+  note: document.getElementById("authNote")
 };
 
 let auth = null;
@@ -42,6 +46,59 @@ const subscribers = new Set();
 let resolveReady;
 const readyPromise = new Promise((resolve) => { resolveReady = resolve; });
 
+const AUTH_TEXT = {
+  si: {
+    title: "Google Login / Sign Up",
+    intro: "Chat Bot භාවිතා කිරීමට ඔබේ Google account එකෙන් ඇතුළත් වන්න.",
+    warning: "Firebase setup එක තවම අවසන් කර නැත. <code>config.js</code> ගොනුව පරීක්ෂා කරන්න.",
+    continueGoogle: "Continue with Google",
+    note: "Google සහ Firebase Authentication හරහා account එක තහවුරු කරයි.",
+    googleLogin: "Google Login",
+    signOut: "Sign Out",
+    configRequired: "Firebase configuration එක site/config.js ගොනුවට එක් කරන්න.",
+    signedOut: "ඔබ සාර්ථකව Sign Out විය.",
+    completeConfig: "මුලින් Firebase configuration එක සම්පූර්ණ කරන්න.",
+    connecting: "Account එකට සම්බන්ධ වෙමින්..."
+  },
+  en: {
+    title: "Google Login / Sign Up",
+    intro: "Sign in with your Google account to use the Chat Bot.",
+    warning: "Firebase setup is not complete. Check the <code>config.js</code> file.",
+    continueGoogle: "Continue with Google",
+    note: "Your account is verified through Google and Firebase Authentication.",
+    googleLogin: "Google Login",
+    signOut: "Sign out",
+    configRequired: "Add the Firebase configuration to the site/config.js file.",
+    signedOut: "You have signed out successfully.",
+    completeConfig: "Complete the Firebase configuration first.",
+    connecting: "Connecting to your account..."
+  }
+};
+
+function authLanguage() {
+  return document.body?.dataset?.answerLanguage === "en" ? "en" : "si";
+}
+
+function at(key) {
+  return AUTH_TEXT[authLanguage()]?.[key] || AUTH_TEXT.si[key] || key;
+}
+
+function translateAuthUi() {
+  if (elements.title) elements.title.textContent = at("title");
+  if (elements.intro) elements.intro.textContent = at("intro");
+  if (elements.warning) elements.warning.innerHTML = at("warning");
+  if (elements.googleText) elements.googleText.textContent = at("continueGoogle");
+  if (elements.note) elements.note.textContent = at("note");
+  if (elements.openButton) elements.openButton.textContent = at("googleLogin");
+  if (elements.signOutButton) {
+    elements.signOutButton.title = at("signOut");
+    elements.signOutButton.setAttribute("aria-label", at("signOut"));
+  }
+}
+
+window.addEventListener("easyict-language-change", translateAuthUi);
+translateAuthUi();
+
 initialize();
 
 async function initialize() {
@@ -49,7 +106,7 @@ async function initialize() {
 
   if (!isConfigured) {
     elements.warning.hidden = false;
-    setMessage("Firebase configuration එක site/config.js ගොනුවට එක් කරන්න.", true);
+    setMessage(at("configRequired"), true);
     setProviderButtonsDisabled(true);
     showAuthModal();
     finishAuth(null);
@@ -92,7 +149,7 @@ function bindUi() {
     if (!auth) return;
     try {
       await signOut(auth);
-      setMessage("ඔබ සාර්ථකව Sign Out විය.", false);
+      setMessage(at("signedOut"), false);
     } catch (error) {
       setMessage(getFriendlyAuthError(error), true);
     }
@@ -102,7 +159,7 @@ function bindUi() {
 async function signInWithGoogle() {
   if (!auth || !isConfigured) {
     showAuthModal();
-    setMessage("මුලින් Firebase configuration එක සම්පූර්ණ කරන්න.", true);
+    setMessage(at("completeConfig"), true);
     return;
   }
 
@@ -110,7 +167,7 @@ async function signInWithGoogle() {
   provider.setCustomParameters({ prompt: "select_account" });
 
   setProviderButtonsDisabled(true);
-  setMessage("Account එකට සම්බන්ධ වෙමින්...", false);
+  setMessage(at("connecting"), false);
 
   try {
     await signInWithPopup(auth, provider);
@@ -184,7 +241,17 @@ function notifySubscribers(user) {
 
 function getFriendlyAuthError(error) {
   const code = error?.code || "";
-  const messages = {
+  const english = authLanguage() === "en";
+  const messages = english ? {
+    "auth/popup-closed-by-user": "The login window was closed before sign-in was completed.",
+    "auth/cancelled-popup-request": "Another login request is already in progress.",
+    "auth/account-exists-with-different-credential": "This email is already used with another sign-in method.",
+    "auth/unauthorized-domain": "This website domain is not added to Firebase Authorized domains.",
+    "auth/operation-not-allowed": "The Google Login provider is not enabled in Firebase Console.",
+    "auth/network-request-failed": "Check your internet connection.",
+    "auth/invalid-api-key": "The Firebase API key is invalid.",
+    "auth/internal-error": "The Authentication service has a temporary error."
+  } : {
     "auth/popup-closed-by-user": "Login window එක අවසන් කිරීමට පෙර වසා ඇත.",
     "auth/cancelled-popup-request": "වෙනත් Login request එකක් දැනට ක්‍රියාත්මකයි.",
     "auth/account-exists-with-different-credential": "මෙම email එක වෙනත් Login ක්‍රමයකින් දැනටමත් භාවිතා කර ඇත.",
@@ -194,7 +261,7 @@ function getFriendlyAuthError(error) {
     "auth/invalid-api-key": "Firebase API key එක වැරදියි.",
     "auth/internal-error": "Authentication සේවාවේ තාවකාලික දෝෂයක් ඇති විය."
   };
-  return messages[code] || error?.message || "Login වීමට නොහැකි විය.";
+  return messages[code] || error?.message || (english ? "Unable to sign in." : "Login වීමට නොහැකි විය.");
 }
 
 export function waitForAuth() {
