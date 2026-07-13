@@ -1293,3 +1293,655 @@ html[data-theme="dark"] .messages::-webkit-scrollbar-thumb {
     max-height: 66px;
   }
 }
+
+
+/* =========================================================
+   Mobile interface polish — header wrapping, better spacing,
+   clearer controls, and improved chat readability.
+   ========================================================= */
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .topbar {
+    min-height: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 18px;
+  }
+
+  .brand {
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .easyict-wordmark {
+    width: min(230px, 40vw);
+    flex: 0 0 auto;
+  }
+
+  .brand-logo-img {
+    max-height: 44px;
+  }
+
+  .brand-divider {
+    height: 28px;
+  }
+
+  .brand-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .brand-copy h1 {
+    font-size: 1.06rem;
+    line-height: 1.08;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-copy p {
+    display: none;
+  }
+
+  .header-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .login-btn {
+    min-height: 38px;
+    max-width: none;
+    padding: 0 10px;
+    font-size: .72rem;
+    line-height: 1;
+  }
+
+  .user-menu {
+    margin-left: auto;
+    gap: 6px;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    font-size: .72rem;
+  }
+
+  .icon-btn,
+  .signout-btn {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    border-radius: 12px;
+  }
+
+  .main-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .sidebar .side-card {
+    margin-bottom: 0;
+    padding: 12px;
+  }
+
+  .chat-panel {
+    height: auto;
+    min-height: calc(100dvh - 255px);
+    border-radius: 18px;
+  }
+
+  .messages {
+    padding: 14px 10px 12px;
+  }
+
+  .message {
+    gap: 7px;
+    margin-bottom: 16px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+  }
+
+  .message-body {
+    max-width: calc(100% - 38px);
+  }
+
+  .bubble {
+    padding: 12px 13px;
+    font-size: .98rem;
+    line-height: 1.78;
+    border-radius: 6px 16px 16px 16px;
+  }
+
+  .user .bubble {
+    border-radius: 16px 6px 16px 16px;
+  }
+
+  .bubble h2 {
+    font-size: 1.12rem;
+    line-height: 1.45;
+  }
+
+  .bubble h3 {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .quick-prompts {
+    display: none;
+  }
+
+  .sources {
+    gap: 6px;
+  }
+
+  .source-chip {
+    font-size: .68rem;
+    padding: 6px 8px;
+  }
+
+  .composer {
+    padding: 10px;
+    gap: 8px;
+    align-items: end;
+  }
+
+  .input-wrap {
+    min-width: 0;
+  }
+
+  textarea {
+    min-height: 58px;
+    max-height: 140px;
+    padding: 12px 54px 12px 12px;
+    font-size: 1rem;
+    line-height: 1.55;
+    border-radius: 14px;
+  }
+
+  .char-count {
+    right: 10px;
+    bottom: 8px;
+    font-size: .66rem;
+  }
+
+  .send-btn {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    border-radius: 14px;
+  }
+
+  .site-footer {
+    margin-top: 0;
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+
+  .site-footer p {
+    font-size: .74rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-shell {
+    padding: 6px;
+  }
+
+  .topbar {
+    padding: 9px 10px;
+    gap: 8px;
+  }
+
+  .brand {
+    gap: 7px;
+  }
+
+  .easyict-wordmark {
+    width: min(200px, 40vw);
+  }
+
+  .brand-logo-img {
+    max-height: 38px;
+  }
+
+  .brand-divider {
+    height: 24px;
+  }
+
+  .brand-copy h1 {
+    font-size: .96rem;
+  }
+
+  .header-actions {
+    gap: 5px;
+  }
+
+  .icon-btn,
+  .signout-btn,
+  .user-avatar {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+
+  .chat-panel {
+    min-height: calc(100dvh - 245px);
+  }
+
+  .messages {
+    padding: 12px 8px 10px;
+  }
+
+  .bubble {
+    font-size: .95rem;
+  }
+
+  .composer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 8px;
+  }
+
+  textarea {
+    min-height: 56px;
+    font-size: .97rem;
+  }
+
+  .send-btn {
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
+  }
+}
+
+
+/* =========================================================
+   Mobile modern interface v2 — compact header, roomy chat,
+   sticky composer, safe-area support. Desktop is unchanged.
+   ========================================================= */
+@media (max-width: 760px) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  .app-shell {
+    width: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .topbar {
+    width: 100%;
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .easyict-wordmark {
+    width: 136px;
+    max-width: 42vw;
+    flex: 0 1 136px;
+  }
+
+  .brand-logo-img {
+    width: 100%;
+    max-height: 42px;
+  }
+
+  .brand-divider {
+    height: 28px;
+    flex: 0 0 1px;
+  }
+
+  .brand-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .brand-copy h1 {
+    max-width: 92px;
+    overflow: hidden;
+    font-size: .94rem;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .brand-copy p {
+    display: none;
+  }
+
+  .header-actions {
+    width: auto;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  .user-menu {
+    margin: 0;
+    gap: 5px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .login-btn {
+    min-height: 36px;
+    max-width: 90px;
+    padding: 0 9px;
+    font-size: .68rem;
+    line-height: 1.05;
+    white-space: normal;
+  }
+
+  .user-avatar,
+  .icon-btn,
+  .signout-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    flex: 0 0 36px;
+    border-radius: 12px;
+  }
+
+  .user-avatar {
+    font-size: .68rem;
+  }
+
+  .icon-btn svg {
+    width: 18px;
+  }
+
+  .main-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .sidebar {
+    flex: 0 0 auto;
+  }
+
+  .sidebar .side-card {
+    margin: 0;
+    padding: 9px;
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .sidebar .side-card h2,
+  .sidebar .tips,
+  .sidebar .status-card {
+    display: none;
+  }
+
+  select {
+    min-height: 48px;
+    padding: 11px 38px 11px 13px;
+    border-radius: 14px;
+    font-size: .98rem;
+    font-weight: 600;
+  }
+
+  .chat-panel {
+    flex: 1 1 auto;
+    width: 100%;
+    height: calc(100dvh - 174px);
+    min-height: 500px;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 14px 10px 18px;
+    scroll-padding-bottom: 100px;
+  }
+
+  .message {
+    gap: 7px;
+    margin-bottom: 15px;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    border-radius: 9px;
+    font-size: .58rem;
+  }
+
+  .message-body {
+    max-width: calc(100% - 35px);
+  }
+
+  .message.user .message-body {
+    max-width: 84%;
+  }
+
+  .bubble {
+    padding: 12px 13px;
+    border-radius: 6px 16px 16px 16px;
+    font-size: .97rem;
+    font-weight: 500;
+    line-height: 1.78;
+  }
+
+  .user .bubble {
+    border-radius: 16px 6px 16px 16px;
+  }
+
+  .bubble h2 {
+    font-size: 1.1rem;
+    line-height: 1.45;
+  }
+
+  .bubble h3 {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .bubble p {
+    margin: .55rem 0;
+  }
+
+  .bubble ul,
+  .bubble ol {
+    padding-left: 1.2rem;
+  }
+
+  .quick-prompts {
+    display: none;
+  }
+
+  .sources {
+    gap: 5px;
+    margin-top: 7px;
+  }
+
+  .source-chip {
+    padding: 6px 8px;
+    border-radius: 9px;
+    font-size: .67rem;
+    line-height: 1.35;
+  }
+
+  .composer {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px;
+    padding: 9px;
+    padding-bottom: max(9px, env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .input-wrap {
+    min-width: 0;
+  }
+
+  textarea {
+    min-height: 56px;
+    max-height: 138px;
+    padding: 12px 52px 12px 13px;
+    border-radius: 17px;
+    font-size: .98rem;
+    line-height: 1.55;
+  }
+
+  .char-count {
+    right: 11px;
+    bottom: 8px;
+    font-size: .64rem;
+  }
+
+  .send-btn {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+    padding: 0;
+    border-radius: 16px;
+  }
+
+  .send-btn span,
+  .composer-hint {
+    display: none;
+  }
+
+  .site-footer {
+    flex: 0 0 auto;
+    min-height: 44px;
+    margin: 0;
+    padding: 9px 12px;
+    border-radius: 15px;
+  }
+
+  .site-footer p {
+    font-size: .72rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .app-shell {
+    padding: 6px;
+    gap: 7px;
+  }
+
+  .topbar {
+    min-height: 60px;
+    padding: 8px 9px;
+  }
+
+  .easyict-wordmark {
+    width: 124px;
+    max-width: 40vw;
+    flex-basis: 124px;
+  }
+
+  .brand-logo-img {
+    max-height: 38px;
+  }
+
+  .brand-divider,
+  .brand-copy {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .user-avatar,
+  .icon-btn,
+  .signout-btn {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex-basis: 34px;
+    border-radius: 11px;
+  }
+
+  .chat-panel {
+    height: calc(100dvh - 160px);
+    min-height: 480px;
+  }
+
+  .messages {
+    padding: 12px 8px 16px;
+  }
+
+  .bubble {
+    padding: 11px 12px;
+    font-size: .94rem;
+  }
+
+  textarea {
+    min-height: 54px;
+    font-size: .96rem;
+  }
+
+  .send-btn {
+    width: 50px;
+    min-width: 50px;
+    height: 50px;
+    border-radius: 15px;
+  }
+}

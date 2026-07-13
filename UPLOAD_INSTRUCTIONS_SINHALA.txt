@@ -1,10 +1,9 @@
-easyict logo update — GitHub upload instructions
+easyict Mobile Modern V2 - GitHub Upload
 
-1. මෙම folder එකේ files සියල්ල GitHub repository එකේ root එකට upload කරන්න.
-2. පරණ files තිබුණොත් Replace/Overwrite කරන්න.
-3. easyict-logo.png file එකත් අනිවාර්යයෙන් upload කරන්න.
+1. ZIP එක extract කරන්න.
+2. ඇතුළත files සියල්ල GitHub repository root එකට upload කරන්න.
+3. පරණ files Replace කරන්න.
 4. Commit changes කරන්න.
-5. GitHub Actions / Pages deploy එක green tick වනතුරු රැඳී සිටින්න.
-6. Website එක Ctrl + F5 දී refresh කරන්න.
+5. Actions deploy එක green tick වූ පසු mobile browser එකේ cache clear කර site එක නැවත open කරන්න.
 
-Cloudflare Worker, Firebase, PDF books නැවත setup කිරීමට අවශ්‍ය නැහැ.
+මෙම version එක mobile interface එක පමණක් වෙනස් කරයි. Desktop layout එක වෙනස් නොවේ.
