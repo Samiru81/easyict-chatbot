@@ -19,7 +19,6 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     charCount: document.getElementById("charCount"),
     status: document.getElementById("apiStatus"),
     statusDot: document.getElementById("statusDot"),
-    setupNotice: document.getElementById("setupNotice"),
     quickPrompts: Array.from(document.querySelectorAll(".quick-prompts button"))
   };
 
@@ -40,6 +39,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   setComposerEnabled(false);
   subscribeAuth(handleAuthChanged);
   checkService();
+  window.addEventListener("online", checkService);
+  window.setInterval(checkService, 60000);
 
   function bindEvents() {
     elements.form.addEventListener("submit", onSubmit);
@@ -115,8 +116,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     updateCounter();
 
     if (!isConfigured) {
-      elements.setupNotice.hidden = false;
-      appendMessage("assistant", "මෙම වෙබ් අඩවියේ API සැකසුම තවම අවසන් කර නැත. README ගොනුවේ පියවර අනුව Cloudflare Worker එක deploy කර `site/config.js` ගොනුවට URL එක දමන්න.", [], true);
+      appendMessage("assistant", "මෙම වෙබ් අඩවියේ API සැකසුම තවම අවසන් කර නැත. README ගොනුවේ පියවර අනුව Cloudflare Worker එක deploy කර `config.js` ගොනුවට URL එක දමන්න.", [], true);
       return;
     }
 
@@ -144,7 +144,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     } catch (error) {
       typingNode.remove();
       appendMessage("assistant", `පිළිතුර ලබාගැනීමට නොහැකි විය. ${friendlyError(error)}`, [], true);
-      setStatus(false, "AI සේවාව සම්බන්ධ නැත");
+      const message = error instanceof Error ? error.message : String(error || "");
+      setStatus(false, /Failed to fetch|NetworkError|fetch failed/i.test(message)
+        ? "AI සේවාව සම්බන්ධ නැත"
+        : "AI සේවාවේ තාවකාලික දෝෂයක්");
     } finally {
       sending = false;
       elements.send.disabled = !activeUser;
@@ -158,6 +161,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
     return fetch(`${API_URL}/chat`, {
       method: "POST",
+      mode: "cors",
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
@@ -335,12 +340,11 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   async function checkService() {
     if (!isConfigured) {
-      elements.setupNotice.hidden = false;
       setStatus(false, "API URL එක සකසා නැත");
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/health`, { method: "GET" });
+      const response = await fetch(`${API_URL}/health?t=${Date.now()}`, { method: "GET", mode: "cors", cache: "no-store" });
       if (!response.ok) throw new Error("offline");
       setStatus(true, "AI සේවාව සක්‍රියයි");
     } catch {
