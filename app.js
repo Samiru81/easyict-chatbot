@@ -152,7 +152,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     elements.send.disabled = true;
     const streamNode = appendTyping();
     const requestController = new AbortController();
-    const requestTimeout = window.setTimeout(() => requestController.abort(), 120000);
+    const requestTimeout = window.setTimeout(() => requestController.abort(), 150000);
 
     try {
       let response = await requestChat(question, recentHistory, false, requestController.signal);
@@ -163,7 +163,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         if (response.status === 401) showAuthModal();
-        throw new Error(data.error || `සේවා දෝෂයක් (${response.status})`);
+        const requestError = new Error(data.error || `සේවා දෝෂයක් (${response.status})`);
+        requestError.status = response.status;
+        requestError.code = data.code || "";
+        throw requestError;
       }
 
       const contentType = response.headers.get("content-type") || "";
@@ -187,8 +190,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
         const note = "\n\n⚠️ සම්බන්ධතාවය අතරමඟ නතර විය. නැවත Send කර උත්සාහ කරන්න.";
         updateStreamingNode(streamNode, existingText + note, [], true);
       } else {
-        streamNode.remove();
-        appendMessage("assistant", `පිළිතුර ලබාගැනීමට නොහැකි විය. ${friendlyError(error)}`, [], true);
+        showRetryError(streamNode, question, error);
       }
 
       const message = error instanceof Error ? error.message : String(error || "");
@@ -274,6 +276,8 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
         setStreamingStatus(node, payload.message || "පිළිතුර සකස් කරමින්...");
       } else if (parsed.event === "error") {
         streamError = new Error(payload.error || "AI stream error");
+        streamError.status = Number(payload.status || 0);
+        streamError.code = payload.code || "";
       }
     };
 
@@ -341,6 +345,36 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     } else {
       sourceBox.hidden = true;
     }
+    scrollToBottom();
+  }
+
+
+  function showRetryError(node, question, error) {
+    const bubble = node.querySelector(".bubble");
+    const sourceBox = node.querySelector(".sources");
+    const message = friendlyError(error);
+    const code = error?.code || (error?.status ? `HTTP ${error.status}` : "");
+
+    node.dataset.answer = "";
+    bubble.classList.add("error-bubble");
+    bubble.innerHTML = `
+      <div class="request-error-content">
+        <strong>පිළිතුර ලබාගැනීමට නොහැකි විය</strong>
+        <p>${escapeHtml(message)}</p>
+        ${code ? `<small>${escapeHtml(String(code))}</small>` : ""}
+        <button type="button" class="retry-answer-btn">↻ නැවත උත්සාහ කරන්න</button>
+      </div>`;
+    sourceBox.hidden = true;
+    sourceBox.innerHTML = "";
+
+    bubble.querySelector(".retry-answer-btn")?.addEventListener("click", () => {
+      if (sending) return;
+      node.remove();
+      elements.input.value = question;
+      autoResize();
+      updateCounter();
+      elements.form.requestSubmit();
+    });
     scrollToBottom();
   }
 
@@ -734,11 +768,14 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   function friendlyError(error) {
     const message = error instanceof Error ? error.message : String(error || "");
-    if (/AbortError|aborted/i.test(message)) return "පිළිතුර සඳහා කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.";
-    if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "අන්තර්ජාල සම්බන්ධතාවය පරීක්ෂා කර නැවත උත්සාහ කරන්න.";
-    if (/401|Login session/i.test(message)) return "Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.";
-    if (/429|requests|rate/i.test(message)) return "AI සේවාවට ඉල්ලීම් වැඩියි. තත්පර කිහිපයකින් නැවත උත්සාහ කරන්න.";
-    if (/500|502|503|504|temporary|තාවකාලික/i.test(message)) return "AI සේවාවේ තාවකාලික දෝෂයක් ඇතිවිය. තත්පර කිහිපයකින් නැවත උත්සාහ කරන්න.";
+    const status = Number(error?.status || 0);
+    const code = String(error?.code || "");
+    if (/AbortError|aborted/i.test(message) || status === 504) return "පිළිතුර සඳහා කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.";
+    if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "අන්තර්ජාල සම්බන්ධතාවය හෝ Cloudflare Worker සම්බන්ධතාවය පරීක්ෂා කරන්න.";
+    if (status === 401 || /INVALID_LOGIN|Login session/i.test(code + message)) return "Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.";
+    if (status === 403 || /AUTH_ERROR/i.test(code)) return "Gemini API key එක හෝ API permission එක පරීක්ෂා කරන්න.";
+    if (status === 429 || /RATE_LIMIT|rate|quota/i.test(code + message)) return "AI භාවිත සීමාව තාවකාලිකව ඉක්මවා ඇත. මිනිත්තුවකින් නැවත උත්සාහ කරන්න.";
+    if ([500, 502, 503, 504].includes(status) || /TEMPORARY_ERROR|temporary|තාවකාලික/i.test(code + message)) return "AI සේවාවේ තාවකාලික දෝෂයක් ඇතිවිය. ටික වේලාවකින් නැවත උත්සාහ කරන්න.";
     return message || "AI සේවාවට සම්බන්ධ වීමට නොහැකි විය.";
   }
 

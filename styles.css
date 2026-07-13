@@ -2170,3 +2170,71 @@ html[data-theme="dark"] .messages::-webkit-scrollbar-thumb {
   opacity: .48;
   transform: none;
 }
+
+/* =========================================================
+   Stable API error card + desktop layout refinement
+   ========================================================= */
+.request-error-content {
+  display: grid;
+  gap: 8px;
+}
+.request-error-content strong {
+  font-size: .96rem;
+  line-height: 1.45;
+}
+.request-error-content p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.65;
+}
+.request-error-content small {
+  color: var(--muted);
+  font-family: Consolas, monospace;
+  font-size: .68rem;
+}
+.retry-answer-btn {
+  width: max-content;
+  min-height: 38px;
+  margin-top: 2px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 0 13px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+}
+.retry-answer-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    overflow: hidden;
+  }
+  .recent-card {
+    flex: 1 1 auto;
+    min-height: 150px;
+    overflow: hidden;
+  }
+  .recent-list {
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .status-card {
+    flex: 0 0 auto;
+    margin-top: 0;
+  }
+  .message.assistant .error-bubble {
+    width: min(620px, 100%);
+    padding: 14px 16px !important;
+    border: 1px solid rgba(255, 107, 107, .42) !important;
+    border-radius: 16px !important;
+    background: rgba(255, 107, 107, .08) !important;
+  }
+  html[data-theme="dark"] .retry-answer-btn {
+    background: #2f2f2f;
+    border-color: #505050;
+  }
+}
