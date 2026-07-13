@@ -19,15 +19,24 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     charCount: document.getElementById("charCount"),
     status: document.getElementById("apiStatus"),
     statusDot: document.getElementById("statusDot"),
-    quickPrompts: Array.from(document.querySelectorAll(".quick-prompts button"))
+    quickPrompts: Array.from(document.querySelectorAll(".quick-prompts button")),
+    newChat: document.getElementById("newChat"),
+    recentList: document.getElementById("recentList"),
+    recentEmpty: document.getElementById("recentEmpty")
   };
 
-  const STORAGE_PREFIX = "easyict-chat-v2";
+  const LEGACY_STORAGE_PREFIX = "easyict-chat-v2";
+  const CONVERSATIONS_PREFIX = "easyict-conversations-v1";
+  const MIGRATION_PREFIX = "easyict-history-migrated-v1";
   const THEME_KEY = "easyict-chat-theme";
   const GRADE_KEY = "easyict-chat-grade";
+  const MAX_CONVERSATIONS = 30;
+  const MAX_MESSAGES_PER_CONVERSATION = 40;
 
-  let history = [];
-  let storageKey = "";
+  let conversations = [];
+  let currentMessages = [];
+  let conversationStorageKey = "";
+  let activeConversationId = null;
   let activeUser = null;
   let sending = false;
 
@@ -56,7 +65,18 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     });
     elements.theme.addEventListener("click", toggleTheme);
     elements.clear.addEventListener("click", clearChat);
-    elements.grade.addEventListener("change", () => localStorage.setItem(GRADE_KEY, elements.grade.value));
+    elements.newChat?.addEventListener("click", () => startNewConversation(true));
+    elements.recentList?.addEventListener("click", handleRecentClick);
+    elements.grade.addEventListener("change", () => {
+      localStorage.setItem(GRADE_KEY, elements.grade.value);
+      const active = getActiveConversation();
+      if (active) {
+        active.grade = elements.grade.value;
+        active.updatedAt = Date.now();
+        persistConversations();
+        renderRecentList();
+      }
+    });
 
     elements.quickPrompts.forEach((button) => {
       button.addEventListener("click", () => {
@@ -74,19 +94,26 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
 
   function handleAuthChanged(user) {
     activeUser = user || null;
-    history = [];
+    conversations = [];
+    currentMessages = [];
+    conversationStorageKey = "";
+    activeConversationId = null;
     clearRenderedHistory();
+    renderRecentList();
 
     if (!activeUser) {
-      storageKey = "";
       setComposerEnabled(false);
       elements.input.placeholder = "Chat Bot භාවිතා කිරීමට Google account එකෙන් Login වන්න...";
       return;
     }
 
-    storageKey = `${STORAGE_PREFIX}:${activeUser.uid}`;
-    history = loadHistory();
-    renderStoredHistory();
+    conversationStorageKey = `${CONVERSATIONS_PREFIX}:${activeUser.uid}`;
+    conversations = loadConversations();
+    migrateLegacyHistory(activeUser.uid);
+    renderRecentList();
+
+    // Every fresh page open starts with a clean, empty conversation.
+    startNewConversation(false);
     setComposerEnabled(true);
     elements.input.placeholder = "ඔබේ ප්‍රශ්නය මෙහි ලියන්න...";
     elements.input.focus();
@@ -107,8 +134,9 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       return;
     }
 
-    const recentHistory = history.slice(-4).map(({ role, text }) => ({ role, text }));
+    const recentHistory = currentMessages.slice(-4).map(({ role, text }) => ({ role, text }));
 
+    ensureActiveConversation(question);
     appendMessage("user", question);
     saveTurn({ role: "user", text: question });
     elements.input.value = "";
@@ -124,7 +152,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     elements.send.disabled = true;
     const streamNode = appendTyping();
     const requestController = new AbortController();
-    const requestTimeout = window.setTimeout(() => requestController.abort(), 100000);
+    const requestTimeout = window.setTimeout(() => requestController.abort(), 120000);
 
     try {
       let response = await requestChat(question, recentHistory, false, requestController.signal);
@@ -179,22 +207,36 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     const token = await getIdToken(forceRefresh);
     if (!token) throw new Error("Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.");
 
-    return fetch(`${API_URL}/chat`, {
-      method: "POST",
-      mode: "cors",
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "text/event-stream",
-        "Authorization": `Bearer ${token}`
-      },
-      signal,
-      body: JSON.stringify({
-        question,
-        grade: elements.grade.value,
-        history: recentHistory
-      })
-    });
+    let lastError;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      try {
+        const response = await fetch(`${API_URL}/chat`, {
+          method: "POST",
+          mode: "cors",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "text/event-stream",
+            "Authorization": `Bearer ${token}`
+          },
+          signal,
+          body: JSON.stringify({
+            question,
+            grade: elements.grade.value,
+            history: recentHistory
+          })
+        });
+
+        if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) return response;
+        try { await response.body?.cancel(); } catch { /* no-op */ }
+        await delay(900 * attempt);
+      } catch (error) {
+        lastError = error;
+        if (signal?.aborted || attempt === 2) throw error;
+        await delay(900 * attempt);
+      }
+    }
+    throw lastError || new Error("AI සේවාවට සම්බන්ධ වීමට නොහැකි විය.");
   }
 
   async function consumeChatStream(response, node) {
@@ -307,6 +349,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     elements.send.disabled = !enabled || sending;
     elements.quickPrompts.forEach((button) => { button.disabled = !enabled; });
     elements.clear.disabled = !enabled;
+    if (elements.newChat) elements.newChat.disabled = !enabled;
     elements.form.classList.toggle("auth-locked", !enabled);
   }
 
@@ -398,41 +441,245 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     }[char]));
   }
 
-  function saveTurn(turn) {
-    if (!storageKey) return;
-    history.push(turn);
-    while (history.length > 20) history.shift();
-    localStorage.setItem(storageKey, JSON.stringify(history));
+  function ensureActiveConversation(firstQuestion = "") {
+    let conversation = getActiveConversation();
+    if (conversation) return conversation;
+
+    const now = Date.now();
+    conversation = {
+      id: createId(),
+      title: makeConversationTitle(firstQuestion),
+      grade: elements.grade.value,
+      createdAt: now,
+      updatedAt: now,
+      messages: []
+    };
+    conversations.unshift(conversation);
+    activeConversationId = conversation.id;
+    currentMessages = conversation.messages;
+    trimConversations();
+    persistConversations();
+    renderRecentList();
+    return conversation;
   }
 
-  function loadHistory() {
-    if (!storageKey) return [];
+  function saveTurn(turn) {
+    if (!conversationStorageKey || !activeUser) return;
+    const conversation = ensureActiveConversation(turn.role === "user" ? turn.text : "");
+    conversation.messages.push({ role: turn.role, text: turn.text });
+    while (conversation.messages.length > MAX_MESSAGES_PER_CONVERSATION) conversation.messages.shift();
+    conversation.updatedAt = Date.now();
+    if (!conversation.title || conversation.title === "නව සංවාදය") {
+      const firstQuestion = conversation.messages.find((item) => item.role === "user")?.text || "";
+      conversation.title = makeConversationTitle(firstQuestion);
+    }
+    currentMessages = conversation.messages;
+    conversations.sort((a, b) => b.updatedAt - a.updatedAt);
+    persistConversations();
+    renderRecentList();
+  }
+
+  function loadConversations() {
+    if (!conversationStorageKey) return [];
     try {
-      const stored = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      return Array.isArray(stored)
-        ? stored.filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.text === "string")
-        : [];
+      const stored = JSON.parse(localStorage.getItem(conversationStorageKey) || "[]");
+      if (!Array.isArray(stored)) return [];
+      return stored.map(normalizeConversation).filter(Boolean).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, MAX_CONVERSATIONS);
     } catch {
       return [];
     }
   }
 
-  function renderStoredHistory() {
-    history.forEach((turn) => appendMessage(turn.role, turn.text));
+  function normalizeConversation(value) {
+    if (!value || typeof value !== "object") return null;
+    const messages = Array.isArray(value.messages)
+      ? value.messages
+          .filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.text === "string")
+          .slice(-MAX_MESSAGES_PER_CONVERSATION)
+      : [];
+    if (!messages.length) return null;
+    const createdAt = Number(value.createdAt) || Date.now();
+    const updatedAt = Number(value.updatedAt) || createdAt;
+    const grade = ["all", "7", "8", "9", "10", "11"].includes(String(value.grade)) ? String(value.grade) : "all";
+    const firstQuestion = messages.find((item) => item.role === "user")?.text || "";
+    return {
+      id: String(value.id || createId()),
+      title: String(value.title || makeConversationTitle(firstQuestion)).slice(0, 80),
+      grade,
+      createdAt,
+      updatedAt,
+      messages
+    };
+  }
+
+  function migrateLegacyHistory(uid) {
+    const migrationKey = `${MIGRATION_PREFIX}:${uid}`;
+    if (localStorage.getItem(migrationKey) === "1") return;
+    const legacyKey = `${LEGACY_STORAGE_PREFIX}:${uid}`;
+    try {
+      const legacy = JSON.parse(localStorage.getItem(legacyKey) || "[]");
+      if (Array.isArray(legacy)) {
+        const messages = legacy
+          .filter((item) => item && ["user", "assistant"].includes(item.role) && typeof item.text === "string")
+          .slice(-MAX_MESSAGES_PER_CONVERSATION);
+        if (messages.length) {
+          const firstQuestion = messages.find((item) => item.role === "user")?.text || "පැරණි සංවාදය";
+          const now = Date.now() - 1000;
+          conversations.unshift({
+            id: createId(),
+            title: makeConversationTitle(firstQuestion),
+            grade: localStorage.getItem(GRADE_KEY) || "all",
+            createdAt: now,
+            updatedAt: now,
+            messages
+          });
+          trimConversations();
+          persistConversations();
+        }
+      }
+      localStorage.removeItem(legacyKey);
+      localStorage.setItem(migrationKey, "1");
+    } catch {
+      localStorage.setItem(migrationKey, "1");
+    }
+  }
+
+  function persistConversations() {
+    if (!conversationStorageKey) return;
+    try {
+      localStorage.setItem(conversationStorageKey, JSON.stringify(conversations.slice(0, MAX_CONVERSATIONS)));
+    } catch {
+      // Ignore storage quota errors; the active chat still continues in memory.
+    }
+  }
+
+  function trimConversations() {
+    conversations.sort((a, b) => b.updatedAt - a.updatedAt);
+    if (conversations.length > MAX_CONVERSATIONS) conversations.length = MAX_CONVERSATIONS;
+  }
+
+  function getActiveConversation() {
+    return conversations.find((item) => item.id === activeConversationId) || null;
+  }
+
+  function startNewConversation(focusInput = true) {
+    if (sending) return;
+    activeConversationId = null;
+    currentMessages = [];
+    clearRenderedHistory();
+    renderRecentList();
+    if (focusInput && activeUser) elements.input.focus();
+  }
+
+  function openConversation(id) {
+    if (sending) return;
+    const conversation = conversations.find((item) => item.id === id);
+    if (!conversation) return;
+    activeConversationId = conversation.id;
+    currentMessages = conversation.messages;
+    if (["all", "7", "8", "9", "10", "11"].includes(conversation.grade)) {
+      elements.grade.value = conversation.grade;
+      localStorage.setItem(GRADE_KEY, conversation.grade);
+    }
+    clearRenderedHistory();
+    currentMessages.forEach((turn) => appendMessage(turn.role, turn.text));
+    renderRecentList();
+    elements.input.focus();
+  }
+
+  function deleteConversation(id) {
+    const conversation = conversations.find((item) => item.id === id);
+    if (!conversation) return;
+    const ok = window.confirm(`“${conversation.title}” සංවාදය මකා දමන්නද?`);
+    if (!ok) return;
+    conversations = conversations.filter((item) => item.id !== id);
+    if (activeConversationId === id) {
+      activeConversationId = null;
+      currentMessages = [];
+      clearRenderedHistory();
+    }
+    persistConversations();
+    renderRecentList();
+  }
+
+  function handleRecentClick(event) {
+    const deleteButton = event.target.closest("[data-delete-conversation]");
+    if (deleteButton) {
+      event.stopPropagation();
+      deleteConversation(deleteButton.dataset.deleteConversation || "");
+      return;
+    }
+    const openButton = event.target.closest("[data-open-conversation]");
+    if (openButton) openConversation(openButton.dataset.openConversation || "");
+  }
+
+  function renderRecentList() {
+    if (!elements.recentList) return;
+    elements.recentList.innerHTML = "";
+    if (!activeUser || !conversations.length) {
+      const empty = document.createElement("p");
+      empty.className = "recent-empty";
+      empty.textContent = activeUser ? "මෑත සංවාද තවම නැත." : "Login වූ පසු සංවාද මෙහි පෙන්වයි.";
+      elements.recentList.appendChild(empty);
+      return;
+    }
+
+    conversations.slice(0, 12).forEach((conversation) => {
+      const row = document.createElement("div");
+      row.className = "recent-item";
+      row.classList.toggle("active", conversation.id === activeConversationId);
+
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "recent-open";
+      open.dataset.openConversation = conversation.id;
+      open.innerHTML = `<span class="recent-title">${escapeHtml(conversation.title)}</span><span class="recent-meta">${formatRecentDate(conversation.updatedAt)} · ${conversation.grade === "all" ? "7-11" : conversation.grade + " ශ්‍රේණිය"}</span>`;
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "recent-delete";
+      remove.dataset.deleteConversation = conversation.id;
+      remove.title = "සංවාදය මකන්න";
+      remove.setAttribute("aria-label", `${conversation.title} සංවාදය මකන්න`);
+      remove.textContent = "×";
+
+      row.append(open, remove);
+      elements.recentList.appendChild(row);
+    });
   }
 
   function clearRenderedHistory() {
     elements.messages.querySelectorAll(".message:not(.welcome-message)").forEach((node) => node.remove());
-    scrollToBottom();
+    elements.messages.scrollTop = 0;
   }
 
   function clearChat() {
-    if (!activeUser || !history.length) return;
-    const ok = window.confirm("මෙම account එකේ සංවාද ඉතිහාසය සම්පූර්ණයෙන් මකා දමන්නද?");
-    if (!ok) return;
-    history.splice(0, history.length);
-    localStorage.removeItem(storageKey);
-    clearRenderedHistory();
+    if (!activeUser || sending) return;
+    if (!activeConversationId) {
+      startNewConversation(true);
+      return;
+    }
+    deleteConversation(activeConversationId);
+  }
+
+  function createId() {
+    if (crypto?.randomUUID) return crypto.randomUUID();
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function makeConversationTitle(question) {
+    const text = String(question || "").replace(/\s+/g, " ").trim();
+    if (!text) return "නව සංවාදය";
+    return text.length > 48 ? `${text.slice(0, 47)}…` : text;
+  }
+
+  function formatRecentDate(timestamp) {
+    const date = new Date(Number(timestamp) || Date.now());
+    const today = new Date();
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleTimeString("si-LK", { hour: "2-digit", minute: "2-digit" });
+    }
+    return date.toLocaleDateString("si-LK", { month: "short", day: "numeric" });
   }
 
   function initializeTheme() {
@@ -488,8 +735,14 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   function friendlyError(error) {
     const message = error instanceof Error ? error.message : String(error || "");
     if (/AbortError|aborted/i.test(message)) return "පිළිතුර සඳහා කාලය ඉක්මවා ගියේය. නැවත උත්සාහ කරන්න.";
-    if (/Failed to fetch|NetworkError/i.test(message)) return "අන්තර්ජාල සම්බන්ධතාවය හෝ API URL එක පරීක්ෂා කරන්න.";
+    if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "අන්තර්ජාල සම්බන්ධතාවය පරීක්ෂා කර නැවත උත්සාහ කරන්න.";
     if (/401|Login session/i.test(message)) return "Google Login session එක අවසන් වී ඇත. නැවත Login වන්න.";
-    return message;
+    if (/429|requests|rate/i.test(message)) return "AI සේවාවට ඉල්ලීම් වැඩියි. තත්පර කිහිපයකින් නැවත උත්සාහ කරන්න.";
+    if (/500|502|503|504|temporary|තාවකාලික/i.test(message)) return "AI සේවාවේ තාවකාලික දෝෂයක් ඇතිවිය. තත්පර කිහිපයකින් නැවත උත්සාහ කරන්න.";
+    return message || "AI සේවාවට සම්බන්ධ වීමට නොහැකි විය.";
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
   }
 })();

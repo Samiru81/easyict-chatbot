@@ -1,9 +1,16 @@
-easyict Mobile Modern V2 - GitHub Upload
+GitHub repository root එකට මෙම folder එකේ සියලු files upload කර පරණ files Replace කරන්න.
 
-1. ZIP එක extract කරන්න.
-2. ඇතුළත files සියල්ල GitHub repository root එකට upload කරන්න.
-3. පරණ files Replace කරන්න.
-4. Commit changes කරන්න.
-5. Actions deploy එක green tick වූ පසු mobile browser එකේ cache clear කර site එක නැවත open කරන්න.
+අනිවාර්ය files:
+- index.html
+- 404.html
+- styles.css
+- app.js
+- auth.js
+- config.js
+- easyict-logo.png
+- favicon.svg
+- .nojekyll
 
-මෙම version එක mobile interface එක පමණක් වෙනස් කරයි. Desktop layout එක වෙනස් නොවේ.
+ඉන්පසු Commit changes කරන්න. Actions deploy එක green tick වූ පසු Ctrl + F5 කරන්න.
+
+මෙම GitHub files සමඟ අලුත් Worker file එකත් deploy කළ යුතුයි. Complete ZIP එකේ worker folder එක බලන්න.
