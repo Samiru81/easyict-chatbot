@@ -1,0 +1,13 @@
+easyict Chat Bot - Desktop UI Update
+
+1. මෙම folder එකේ files සියල්ල GitHub repository root එකට upload කරන්න.
+2. පරණ files තිබේ නම් Replace කරන්න.
+3. GitHub Actions deploy එක green tick වනතුරු රැඳී සිටින්න.
+4. Website එක Ctrl + F5 දී refresh කරන්න.
+
+වෙනස්කම්:
+- Desktop mode එකේ Sinhala අකුරු විශාල සහ පැහැදිලි කර ඇත.
+- Dark mode වර්ණ contrast වැඩි කර ඇත.
+- Desktop browser viewport එක පුරා layout එක දිවෙන ලෙස සකස් කර ඇත.
+- Sidebar, chat bubbles, input area සහ source chips වැඩිදියුණු කර ඇත.
+- Mobile layout එකේ මුල් ප්‍රමාණ බොහෝ දුරට නොවෙනස්ව තබා ඇත.

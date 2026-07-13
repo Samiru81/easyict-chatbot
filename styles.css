@@ -631,3 +631,350 @@ textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99
 }
 .stream-status .typing { min-width: 42px; }
 .message.assistant .bubble { min-height: 48px; }
+
+/* =========================================================
+   Desktop visual refresh — full viewport, clearer typography
+   ========================================================= */
+
+/* Refined dark palette with stronger Sinhala text contrast */
+html[data-theme="dark"] {
+  --bg: #050b14;
+  --surface: rgba(9, 24, 41, 0.94);
+  --surface-solid: #0a1a2d;
+  --surface-soft: #102640;
+  --text: #f5f9ff;
+  --muted: #b8c8dc;
+  --border: #294865;
+  --primary: #38bdf8;
+  --primary-strong: #2563eb;
+  --primary-soft: #103452;
+  --user-bubble: #2563eb;
+  --user-text: #ffffff;
+  --shadow: 0 20px 55px rgba(0, 0, 0, 0.38);
+  --danger: #fb7185;
+  --success: #34d399;
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 8% -8%, rgba(14, 165, 233, .18), transparent 34rem),
+    radial-gradient(circle at 96% 108%, rgba(99, 102, 241, .16), transparent 38rem),
+    linear-gradient(145deg, #050a12 0%, #071426 50%, #07111f 100%);
+}
+
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .site-footer {
+  background: linear-gradient(135deg, rgba(7, 22, 40, .98), rgba(8, 18, 34, .98));
+  border-color: rgba(80, 139, 181, .34);
+}
+
+html[data-theme="dark"] .side-card,
+html[data-theme="dark"] .chat-panel {
+  background: linear-gradient(155deg, rgba(11, 28, 48, .97), rgba(8, 21, 38, .97));
+  border-color: rgba(61, 104, 139, .48);
+}
+
+html[data-theme="dark"] .bubble {
+  background: linear-gradient(145deg, #0d223a, #0b1d32);
+  border-color: #2a4b69;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .16);
+}
+
+html[data-theme="dark"] .user .bubble {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  border-color: rgba(147, 197, 253, .22);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, .28);
+}
+
+html[data-theme="dark"] .composer,
+html[data-theme="dark"] .composer-hint {
+  background: rgba(7, 19, 34, .96);
+}
+
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select,
+html[data-theme="dark"] .tips p,
+html[data-theme="dark"] .quick-prompts button {
+  background: #0f2945;
+  border-color: #31536f;
+}
+
+html[data-theme="dark"] textarea:focus,
+html[data-theme="dark"] select:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, .14);
+}
+
+html[data-theme="dark"] .source-chip {
+  background: #123552;
+  border-color: #315b79;
+  color: #e8f6ff;
+}
+
+html[data-theme="dark"] .messages::-webkit-scrollbar-thumb {
+  background: #31506b;
+  border-color: transparent;
+}
+
+@media (min-width: 1024px) {
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: "Noto Sans Sinhala", "Iskoola Pota", "Segoe UI", Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 450;
+    letter-spacing: .004em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    min-height: 0;
+    margin: 0;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .topbar {
+    min-height: 84px;
+    padding: 12px 20px;
+    border-radius: 20px;
+  }
+
+  .easyict-text {
+    font-size: clamp(2.45rem, 3.4vw, 3.25rem);
+  }
+
+  .brand-copy h1 {
+    font-size: 1.62rem;
+  }
+
+  .brand-copy p {
+    font-size: .91rem;
+    font-weight: 500;
+  }
+
+  .header-actions {
+    align-items: center;
+    gap: 9px;
+  }
+
+  .user-name {
+    max-width: 210px;
+    font-size: .88rem;
+  }
+
+  .login-btn,
+  .signout-btn {
+    min-height: 43px;
+    font-size: .85rem;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .main-layout {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    grid-template-columns: clamp(300px, 22vw, 340px) minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .sidebar {
+    min-height: 0;
+    gap: 15px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .side-card {
+    padding: 19px;
+    border-radius: 20px;
+  }
+
+  .side-card h2 {
+    margin-bottom: 14px;
+    font-size: 1.04rem;
+    line-height: 1.5;
+    font-weight: 700;
+  }
+
+  select {
+    min-height: 48px;
+    padding: 12px 42px 12px 14px;
+    border-radius: 13px;
+    font-size: .98rem;
+    font-weight: 600;
+  }
+
+  .tips p {
+    padding: 12px 13px;
+    font-size: .91rem;
+    line-height: 1.72;
+  }
+
+  .status-line {
+    font-size: .93rem;
+    font-weight: 600;
+  }
+
+  .status-card small {
+    font-size: .8rem;
+    line-height: 1.65;
+  }
+
+  .chat-panel {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 22px;
+  }
+
+  .messages {
+    padding: 28px clamp(28px, 3.3vw, 56px);
+  }
+
+  .message {
+    gap: 13px;
+    margin-bottom: 25px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 13px;
+    font-size: .76rem;
+  }
+
+  .message-body {
+    max-width: min(940px, 88%);
+  }
+
+  .bubble {
+    padding: 16px 18px;
+    border-radius: 5px 19px 19px 19px;
+    font-size: 1.055rem;
+    font-weight: 500;
+    line-height: 1.9;
+  }
+
+  .user .bubble {
+    border-radius: 19px 5px 19px 19px;
+  }
+
+  .bubble h2 {
+    font-size: 1.34rem;
+    line-height: 1.55;
+  }
+
+  .bubble h3 {
+    font-size: 1.13rem;
+    line-height: 1.55;
+  }
+
+  .bubble p {
+    margin: .66rem 0;
+  }
+
+  .bubble li {
+    margin: .42rem 0;
+  }
+
+  .quick-prompts {
+    gap: 9px;
+    margin-top: 14px;
+  }
+
+  .quick-prompts button {
+    padding: 9px 14px;
+    font-size: .85rem;
+    font-weight: 600;
+  }
+
+  .source-chip {
+    padding: 7px 10px;
+    font-size: .79rem;
+    line-height: 1.45;
+  }
+
+  .composer {
+    gap: 12px;
+    padding: 15px 20px 8px;
+  }
+
+  textarea {
+    min-height: 56px;
+    padding: 14px 64px 14px 16px;
+    border-radius: 16px;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.65;
+  }
+
+  .char-count {
+    right: 13px;
+    bottom: 9px;
+    font-size: .72rem;
+  }
+
+  .send-btn {
+    height: 56px;
+    min-width: 116px;
+    border-radius: 16px;
+    font-size: .96rem;
+  }
+
+  .composer-hint {
+    padding-bottom: 11px;
+    font-size: .75rem;
+  }
+
+  .site-footer {
+    min-height: 48px;
+    margin: 0;
+    border-radius: 17px;
+    padding: 9px 18px;
+  }
+
+  .site-footer p {
+    font-size: .84rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .app-shell {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .main-layout {
+    grid-template-columns: 350px minmax(0, 1fr);
+  }
+
+  .messages {
+    padding-left: clamp(48px, 5vw, 84px);
+    padding-right: clamp(48px, 5vw, 84px);
+  }
+
+  .bubble {
+    font-size: 1.1rem;
+  }
+}
