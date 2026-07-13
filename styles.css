@@ -987,3 +987,17 @@ textarea {
   font-size: 1rem;
   font-weight: 800;
 }
+
+
+/* Light-mode-only easyict logo: transparent PNG with black graduation cap. */
+html:not([data-theme="dark"]) .sidebar-brand img,
+html[data-theme="light"] .sidebar-brand img,
+html:not([data-theme="dark"]) .auth-logo-img,
+html[data-theme="light"] .auth-logo-img {
+  content: url("easyict-logo-light.png");
+}
+
+html[data-theme="dark"] .sidebar-brand img,
+html[data-theme="dark"] .auth-logo-img {
+  content: url("easyict-logo.png");
+}

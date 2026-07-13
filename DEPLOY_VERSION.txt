@@ -1,1 +1,1 @@
-easyict full English UI fixed build: 20260713-fullenglish2-fixed
+easyict light-mode black-cap logo build: 20260713-lightlogo1
