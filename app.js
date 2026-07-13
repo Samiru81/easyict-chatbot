@@ -22,7 +22,15 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     quickPrompts: Array.from(document.querySelectorAll(".quick-prompts button")),
     newChat: document.getElementById("newChat"),
     recentList: document.getElementById("recentList"),
-    recentEmpty: document.getElementById("recentEmpty")
+    recentEmpty: document.getElementById("recentEmpty"),
+    chatSearch: document.getElementById("chatSearch"),
+    sidebar: document.getElementById("appSidebar"),
+    sidebarToggle: document.getElementById("sidebarToggle"),
+    sidebarClose: document.getElementById("sidebarClose"),
+    sidebarBackdrop: document.getElementById("sidebarBackdrop"),
+    booksTab: document.getElementById("booksTab"),
+    booksShortcut: document.getElementById("booksShortcut"),
+    welcomeTitle: document.getElementById("welcomeTitle")
   };
 
   const LEGACY_STORAGE_PREFIX = "easyict-chat-v2";
@@ -65,8 +73,14 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     });
     elements.theme.addEventListener("click", toggleTheme);
     elements.clear.addEventListener("click", clearChat);
-    elements.newChat?.addEventListener("click", () => startNewConversation(true));
+    elements.newChat?.addEventListener("click", () => { startNewConversation(true); setSidebar(false); });
     elements.recentList?.addEventListener("click", handleRecentClick);
+    elements.chatSearch?.addEventListener("input", filterRecentList);
+    elements.sidebarToggle?.addEventListener("click", toggleSidebar);
+    elements.sidebarClose?.addEventListener("click", () => setSidebar(false));
+    elements.sidebarBackdrop?.addEventListener("click", () => setSidebar(false));
+    elements.booksTab?.addEventListener("click", () => setSidebar(true));
+    elements.booksShortcut?.addEventListener("click", () => setSidebar(true));
     elements.grade.addEventListener("change", () => {
       localStorage.setItem(GRADE_KEY, elements.grade.value);
       const active = getActiveConversation();
@@ -102,10 +116,14 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
     renderRecentList();
 
     if (!activeUser) {
+      if (elements.welcomeTitle) elements.welcomeTitle.textContent = "ආයුබෝවන්.";
       setComposerEnabled(false);
       elements.input.placeholder = "Chat Bot භාවිතා කිරීමට Google account එකෙන් Login වන්න...";
       return;
     }
+
+    const firstName = String(activeUser.displayName || "").trim().split(/\s+/)[0];
+    if (elements.welcomeTitle) elements.welcomeTitle.textContent = firstName ? `ආයුබෝවන්, ${firstName}.` : "ආයුබෝවන්.";
 
     conversationStorageKey = `${CONVERSATIONS_PREFIX}:${activeUser.uid}`;
     conversations = loadConversations();
@@ -388,6 +406,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   }
 
   function appendMessage(role, text, sources = [], isError = false) {
+    elements.messages.classList.add("has-conversation");
     const node = elements.template.content.firstElementChild.cloneNode(true);
     const avatar = node.querySelector(".avatar");
     const bubble = node.querySelector(".bubble");
@@ -416,6 +435,7 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
   }
 
   function appendTyping() {
+    elements.messages.classList.add("has-conversation");
     const node = elements.template.content.firstElementChild.cloneNode(true);
     node.classList.add("assistant");
     node.querySelector(".avatar").textContent = "AI";
@@ -644,7 +664,10 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       return;
     }
     const openButton = event.target.closest("[data-open-conversation]");
-    if (openButton) openConversation(openButton.dataset.openConversation || "");
+    if (openButton) {
+      openConversation(openButton.dataset.openConversation || "");
+      setSidebar(false);
+    }
   }
 
   function renderRecentList() {
@@ -680,10 +703,39 @@ import { getIdToken, showAuthModal, subscribeAuth } from "./auth.js";
       row.append(open, remove);
       elements.recentList.appendChild(row);
     });
+    filterRecentList();
+  }
+
+  function filterRecentList() {
+    if (!elements.recentList) return;
+    const query = String(elements.chatSearch?.value || "").trim().toLocaleLowerCase("si-LK");
+    elements.recentList.querySelectorAll(".recent-item").forEach((item) => {
+      const title = String(item.querySelector(".recent-title")?.textContent || "").toLocaleLowerCase("si-LK");
+      item.hidden = Boolean(query && !title.includes(query));
+    });
+  }
+
+  function setSidebar(open) {
+    const mobile = window.matchMedia("(max-width: 820px)").matches;
+    if (mobile) {
+      document.body.classList.toggle("sidebar-open", Boolean(open));
+      if (elements.sidebarBackdrop) elements.sidebarBackdrop.hidden = !open;
+      elements.sidebarToggle?.setAttribute("aria-expanded", String(Boolean(open)));
+      return;
+    }
+    document.body.classList.toggle("sidebar-collapsed", !open);
+    elements.sidebarToggle?.setAttribute("aria-expanded", String(Boolean(open)));
+  }
+
+  function toggleSidebar() {
+    const mobile = window.matchMedia("(max-width: 820px)").matches;
+    if (mobile) setSidebar(!document.body.classList.contains("sidebar-open"));
+    else setSidebar(document.body.classList.contains("sidebar-collapsed"));
   }
 
   function clearRenderedHistory() {
     elements.messages.querySelectorAll(".message:not(.welcome-message)").forEach((node) => node.remove());
+    elements.messages.classList.remove("has-conversation");
     elements.messages.scrollTop = 0;
   }
 
