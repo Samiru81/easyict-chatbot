@@ -1,1 +1,1 @@
-easyict full English UI + clear navigation build: 20260713-full-english-nav3
+easyict clear navigation + profile info build: 20260713-navprofile1

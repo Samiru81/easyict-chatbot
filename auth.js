@@ -28,7 +28,10 @@ const elements = {
   openButton: document.getElementById("openAuth"),
   userMenu: document.getElementById("userMenu"),
   userAvatar: document.getElementById("userAvatar"),
+  userPhoto: document.getElementById("userPhoto"),
+  userInitials: document.getElementById("userInitials"),
   userName: document.getElementById("userName"),
+  userEmail: document.getElementById("userEmail"),
   signOutButton: document.getElementById("signOutButton")
 };
 
@@ -39,14 +42,6 @@ const subscribers = new Set();
 let resolveReady;
 const readyPromise = new Promise((resolve) => { resolveReady = resolve; });
 
-function isEnglish() {
-  return document.body?.dataset.answerLanguage === "en";
-}
-
-function authText(si, en) {
-  return isEnglish() ? en : si;
-}
-
 initialize();
 
 async function initialize() {
@@ -54,7 +49,7 @@ async function initialize() {
 
   if (!isConfigured) {
     elements.warning.hidden = false;
-    setMessage(authText("Firebase configuration එක site/config.js ගොනුවට එක් කරන්න.", "Add the Firebase configuration to the site/config.js file."), true);
+    setMessage("Firebase configuration එක site/config.js ගොනුවට එක් කරන්න.", true);
     setProviderButtonsDisabled(true);
     showAuthModal();
     finishAuth(null);
@@ -97,7 +92,7 @@ function bindUi() {
     if (!auth) return;
     try {
       await signOut(auth);
-      setMessage(authText("ඔබ සාර්ථකව Sign Out විය.", "You signed out successfully."), false);
+      setMessage("ඔබ සාර්ථකව Sign Out විය.", false);
     } catch (error) {
       setMessage(getFriendlyAuthError(error), true);
     }
@@ -107,7 +102,7 @@ function bindUi() {
 async function signInWithGoogle() {
   if (!auth || !isConfigured) {
     showAuthModal();
-    setMessage(authText("මුලින් Firebase configuration එක සම්පූර්ණ කරන්න.", "Complete the Firebase configuration first."), true);
+    setMessage("මුලින් Firebase configuration එක සම්පූර්ණ කරන්න.", true);
     return;
   }
 
@@ -115,7 +110,7 @@ async function signInWithGoogle() {
   provider.setCustomParameters({ prompt: "select_account" });
 
   setProviderButtonsDisabled(true);
-  setMessage(authText("Account එකට සම්බන්ධ වෙමින්...", "Connecting to your account..."), false);
+  setMessage("Account එකට සම්බන්ධ වෙමින්...", false);
 
   try {
     await signInWithPopup(auth, provider);
@@ -139,9 +134,24 @@ function updateAuthUi(user) {
   if (!user) return;
 
   const displayName = user.displayName || user.email || "User";
+  const email = user.email || "easyict account";
+  const photoURL = user.photoURL || "";
   elements.userName.textContent = displayName;
-  elements.userAvatar.textContent = getInitials(displayName);
-  elements.userAvatar.title = displayName;
+  if (elements.userEmail) elements.userEmail.textContent = email;
+  if (elements.userInitials) elements.userInitials.textContent = getInitials(displayName);
+  if (elements.userPhoto) {
+    if (photoURL) {
+      elements.userPhoto.src = photoURL;
+      elements.userPhoto.hidden = false;
+      if (elements.userInitials) elements.userInitials.hidden = true;
+    } else {
+      elements.userPhoto.removeAttribute("src");
+      elements.userPhoto.hidden = true;
+      if (elements.userInitials) elements.userInitials.hidden = false;
+    }
+  }
+  elements.userAvatar.title = `${displayName}${email ? `
+${email}` : ""}`;
   setMessage("", false);
 }
 
@@ -174,7 +184,7 @@ function notifySubscribers(user) {
 
 function getFriendlyAuthError(error) {
   const code = error?.code || "";
-  const siMessages = {
+  const messages = {
     "auth/popup-closed-by-user": "Login window එක අවසන් කිරීමට පෙර වසා ඇත.",
     "auth/cancelled-popup-request": "වෙනත් Login request එකක් දැනට ක්‍රියාත්මකයි.",
     "auth/account-exists-with-different-credential": "මෙම email එක වෙනත් Login ක්‍රමයකින් දැනටමත් භාවිතා කර ඇත.",
@@ -184,18 +194,7 @@ function getFriendlyAuthError(error) {
     "auth/invalid-api-key": "Firebase API key එක වැරදියි.",
     "auth/internal-error": "Authentication සේවාවේ තාවකාලික දෝෂයක් ඇති විය."
   };
-  const enMessages = {
-    "auth/popup-closed-by-user": "The login window was closed before sign-in was completed.",
-    "auth/cancelled-popup-request": "Another login request is already in progress.",
-    "auth/account-exists-with-different-credential": "This email is already used with a different login method.",
-    "auth/unauthorized-domain": "This website domain has not been added to Firebase Authorized Domains.",
-    "auth/operation-not-allowed": "The Google login provider is not enabled in Firebase Console.",
-    "auth/network-request-failed": "Check your internet connection.",
-    "auth/invalid-api-key": "The Firebase API key is invalid.",
-    "auth/internal-error": "The authentication service has a temporary error."
-  };
-  const messages = isEnglish() ? enMessages : siMessages;
-  return messages[code] || error?.message || authText("Login වීමට නොහැකි විය.", "Could not sign in.");
+  return messages[code] || error?.message || "Login වීමට නොහැකි විය.";
 }
 
 export function waitForAuth() {
